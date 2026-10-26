@@ -1,5 +1,6 @@
 import sys
 from pathlib import Path
+import pytest 
 
 # Add module directory to path for imports
 ch8_dir = Path(__file__).resolve().parent.parent / "chapter8" / "harness-safety-gate"
@@ -12,7 +13,7 @@ from safety_policy_gate import (
     validate_tool_call,
 )
 
-
+@pytest.mark.skipif(sys.platform == "win32", reason="Linux specific test: /etc/shadow is not valid on Windows")
 def test_path_traversal_detection():
     gate = SafetyPolicyGate()
     rollback_called = False

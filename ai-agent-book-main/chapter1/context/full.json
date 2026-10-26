@@ -1,0 +1,715 @@
+{
+  "completed": true,
+  "task_success": null,
+  "success": true,
+  "iterations": 3,
+  "final_answer": "1 USD converts to 0.92 EUR, 0.79 GBP, and 149.50 JPY, with an average of approximately 50.40.",
+  "error": null,
+  "context_mode": "full",
+  "tool_calls": [
+    {
+      "tool_name": "convert_currency",
+      "arguments": {
+        "amount": 1,
+        "from_currency": "USD",
+        "to_currency": "EUR"
+      },
+      "result": {
+        "original_amount": 1.0,
+        "from_currency": "USD",
+        "to_currency": "EUR",
+        "converted_amount": 0.92,
+        "exchange_rate": 0.92,
+        "timestamp": "2026-10-10T17:24:23.544224"
+      },
+      "timestamp": "2026-10-10T17:24:23.544256"
+    },
+    {
+      "tool_name": "convert_currency",
+      "arguments": {
+        "amount": 1,
+        "from_currency": "USD",
+        "to_currency": "GBP"
+      },
+      "result": {
+        "original_amount": 1.0,
+        "from_currency": "USD",
+        "to_currency": "GBP",
+        "converted_amount": 0.79,
+        "exchange_rate": 0.79,
+        "timestamp": "2026-10-10T17:24:23.544331"
+      },
+      "timestamp": "2026-10-10T17:24:23.544356"
+    },
+    {
+      "tool_name": "convert_currency",
+      "arguments": {
+        "amount": 1,
+        "from_currency": "USD",
+        "to_currency": "JPY"
+      },
+      "result": {
+        "original_amount": 1.0,
+        "from_currency": "USD",
+        "to_currency": "JPY",
+        "converted_amount": 149.5,
+        "exchange_rate": 149.5,
+        "timestamp": "2026-10-10T17:24:23.544415"
+      },
+      "timestamp": "2026-10-10T17:24:23.544439"
+    },
+    {
+      "tool_name": "calculate",
+      "arguments": {
+        "expression": "(0.92 + 0.79 + 149.5) / 3"
+      },
+      "result": {
+        "expression": "(0.92 + 0.79 + 149.5) / 3",
+        "result": 50.403333333333336,
+        "type": "float"
+      },
+      "timestamp": "2026-10-10T17:24:29.856291"
+    }
+  ],
+  "reasoning_steps": [
+    "The user wants to convert USD to EUR, GBP, JPY and average them. But they haven't specified an amount. The default would be 1 USD presumably. Let me convert 1 USD to EUR, GBP, JPY and then average the resulting values.\n\nLet me make the three conversion calls in parallel since they're independent.",
+    "Now I have the three values:\n- 1 USD = 0.92 EUR\n- 1 USD = 0.79 GBP\n- 1 USD = 149.5 JPY\n\nAverage = (0.92 + 0.79 + 149.5) / 3 = 151.21 / 3 = 50.4033...\n\nLet me calculate this.",
+    "The conversions for 1 USD:\n- EUR: 0.92\n- GBP: 0.79\n- JPY: 149.5\n\nAverage = (0.92 + 0.79 + 149.5) / 3 = 151.21 / 3 \u2248 50.40\n\nNote: averaging values in different currencies isn't financially meaningful, but mathematically the average of the three converted amounts is ~50.40."
+  ],
+  "api_turns": [
+    {
+      "iteration": 1,
+      "provider": "kimi",
+      "resolved_model": "kimi-k3",
+      "base_url": "https://api.moonshot.cn/v1",
+      "using_openrouter": false,
+      "request": {
+        "model": "kimi-k3",
+        "messages": [
+          {
+            "role": "system",
+            "content": "You are an intelligent assistant with access to tools. \n\nYour task is to solve the given problems using the available tools. Think step by step and use tools as needed.\n\nImportant: When you have gathered all necessary information and computed the final answer, clearly state \"FINAL ANSWER:\" followed by your answer."
+          },
+          {
+            "role": "user",
+            "content": "Convert  USD to EUR, GBP, JPY and average them."
+          }
+        ],
+        "temperature": 1,
+        "max_tokens": 8192,
+        "tools": [
+          {
+            "type": "function",
+            "function": {
+              "name": "parse_pdf",
+              "description": "Download and parse a PDF document from a URL or a file path to extract text content",
+              "parameters": {
+                "type": "object",
+                "properties": {
+                  "url": {
+                    "type": "string",
+                    "description": "The URL or file path of the PDF document to parse"
+                  }
+                },
+                "required": [
+                  "url"
+                ]
+              }
+            }
+          },
+          {
+            "type": "function",
+            "function": {
+              "name": "convert_currency",
+              "description": "Convert an amount from one currency to another using current exchange rates",
+              "parameters": {
+                "type": "object",
+                "properties": {
+                  "amount": {
+                    "type": "number",
+                    "description": "The amount to convert"
+                  },
+                  "from_currency": {
+                    "type": "string",
+                    "description": "The source currency code (e.g., USD, EUR)"
+                  },
+                  "to_currency": {
+                    "type": "string",
+                    "description": "The target currency code (e.g., USD, EUR)"
+                  }
+                },
+                "required": [
+                  "amount",
+                  "from_currency",
+                  "to_currency"
+                ]
+              }
+            }
+          },
+          {
+            "type": "function",
+            "function": {
+              "name": "calculate",
+              "description": "Evaluate a simple mathematical expression",
+              "parameters": {
+                "type": "object",
+                "properties": {
+                  "expression": {
+                    "type": "string",
+                    "description": "The mathematical expression to evaluate (e.g., '2 + 2 * 3')"
+                  }
+                },
+                "required": [
+                  "expression"
+                ]
+              }
+            }
+          },
+          {
+            "type": "function",
+            "function": {
+              "name": "code_interpreter",
+              "description": "Execute Python code for complex calculations, data processing, and computing totals. Use this for tasks like: summing lists of values, calculating percentages, aggregating financial data, performing multi-step calculations, or any computation requiring variables and intermediate steps.",
+              "parameters": {
+                "type": "object",
+                "properties": {
+                  "code": {
+                    "type": "string",
+                    "description": "Python code to execute. Can use variables, loops, and mathematical operations. Example: 'amounts = [2500000, 2278481, 2541806, 2282609, 2388060]; total = sum(amounts); print(f\"Total: ${total:,.2f}\")"
+                  }
+                },
+                "required": [
+                  "code"
+                ]
+              }
+            }
+          }
+        ],
+        "tool_choice": "auto"
+      },
+      "response": {
+        "id": "chatcmpl-6aca043bd9476cfc37ab969f",
+        "choices": [
+          {
+            "finish_reason": "tool_calls",
+            "index": 0,
+            "logprobs": null,
+            "message": {
+              "content": "I'll convert 1 USD to each currency (EUR, GBP, JPY) and then average the results. Since no amount was specified, I'll use 1 USD.",
+              "refusal": null,
+              "role": "assistant",
+              "annotations": null,
+              "audio": null,
+              "function_call": null,
+              "tool_calls": [
+                {
+                  "id": "convert_currency_0_a2784a89",
+                  "function": {
+                    "arguments": "{\"amount\":1,\"from_currency\":\"USD\",\"to_currency\":\"EUR\"}",
+                    "name": "convert_currency"
+                  },
+                  "type": "function",
+                  "index": 0
+                },
+                {
+                  "id": "convert_currency_1_65c5e952",
+                  "function": {
+                    "arguments": "{\"amount\":1,\"from_currency\":\"USD\",\"to_currency\":\"GBP\"}",
+                    "name": "convert_currency"
+                  },
+                  "type": "function",
+                  "index": 1
+                },
+                {
+                  "id": "convert_currency_2_eba3b935",
+                  "function": {
+                    "arguments": "{\"amount\":1,\"from_currency\":\"USD\",\"to_currency\":\"JPY\"}",
+                    "name": "convert_currency"
+                  },
+                  "type": "function",
+                  "index": 2
+                }
+              ],
+              "reasoning_content": "The user wants to convert USD to EUR, GBP, JPY and average them. But they haven't specified an amount. The default would be 1 USD presumably. Let me convert 1 USD to EUR, GBP, JPY and then average the resulting values.\n\nLet me make the three conversion calls in parallel since they're independent."
+            }
+          }
+        ],
+        "created": 1791624255,
+        "model": "kimi-k3",
+        "object": "chat.completion",
+        "moderation": null,
+        "service_tier": null,
+        "system_fingerprint": null,
+        "usage": {
+          "completion_tokens": 310,
+          "prompt_tokens": 586,
+          "total_tokens": 896,
+          "completion_tokens_details": {
+            "accepted_prediction_tokens": null,
+            "audio_tokens": null,
+            "reasoning_tokens": 67,
+            "rejected_prediction_tokens": null
+          },
+          "prompt_tokens_details": {
+            "audio_tokens": null,
+            "cache_write_tokens": 512,
+            "cached_tokens": null
+          }
+        }
+      }
+    },
+    {
+      "iteration": 2,
+      "provider": "kimi",
+      "resolved_model": "kimi-k3",
+      "base_url": "https://api.moonshot.cn/v1",
+      "using_openrouter": false,
+      "request": {
+        "model": "kimi-k3",
+        "messages": [
+          {
+            "role": "system",
+            "content": "You are an intelligent assistant with access to tools. \n\nYour task is to solve the given problems using the available tools. Think step by step and use tools as needed.\n\nImportant: When you have gathered all necessary information and computed the final answer, clearly state \"FINAL ANSWER:\" followed by your answer."
+          },
+          {
+            "role": "user",
+            "content": "Convert  USD to EUR, GBP, JPY and average them."
+          },
+          {
+            "content": "I'll convert 1 USD to each currency (EUR, GBP, JPY) and then average the results. Since no amount was specified, I'll use 1 USD.",
+            "refusal": null,
+            "role": "assistant",
+            "annotations": null,
+            "audio": null,
+            "function_call": null,
+            "tool_calls": [
+              {
+                "id": "convert_currency_0_a2784a89",
+                "function": {
+                  "arguments": "{\"amount\":1,\"from_currency\":\"USD\",\"to_currency\":\"EUR\"}",
+                  "name": "convert_currency"
+                },
+                "type": "function",
+                "index": 0
+              },
+              {
+                "id": "convert_currency_1_65c5e952",
+                "function": {
+                  "arguments": "{\"amount\":1,\"from_currency\":\"USD\",\"to_currency\":\"GBP\"}",
+                  "name": "convert_currency"
+                },
+                "type": "function",
+                "index": 1
+              },
+              {
+                "id": "convert_currency_2_eba3b935",
+                "function": {
+                  "arguments": "{\"amount\":1,\"from_currency\":\"USD\",\"to_currency\":\"JPY\"}",
+                  "name": "convert_currency"
+                },
+                "type": "function",
+                "index": 2
+              }
+            ],
+            "reasoning_content": "The user wants to convert USD to EUR, GBP, JPY and average them. But they haven't specified an amount. The default would be 1 USD presumably. Let me convert 1 USD to EUR, GBP, JPY and then average the resulting values.\n\nLet me make the three conversion calls in parallel since they're independent."
+          },
+          {
+            "role": "tool",
+            "tool_call_id": "convert_currency_0_a2784a89",
+            "content": "{\"original_amount\": 1.0, \"from_currency\": \"USD\", \"to_currency\": \"EUR\", \"converted_amount\": 0.92, \"exchange_rate\": 0.92, \"timestamp\": \"2026-10-10T17:24:23.544224\"}"
+          },
+          {
+            "role": "tool",
+            "tool_call_id": "convert_currency_1_65c5e952",
+            "content": "{\"original_amount\": 1.0, \"from_currency\": \"USD\", \"to_currency\": \"GBP\", \"converted_amount\": 0.79, \"exchange_rate\": 0.79, \"timestamp\": \"2026-10-10T17:24:23.544331\"}"
+          },
+          {
+            "role": "tool",
+            "tool_call_id": "convert_currency_2_eba3b935",
+            "content": "{\"original_amount\": 1.0, \"from_currency\": \"USD\", \"to_currency\": \"JPY\", \"converted_amount\": 149.5, \"exchange_rate\": 149.5, \"timestamp\": \"2026-10-10T17:24:23.544415\"}"
+          }
+        ],
+        "temperature": 1,
+        "max_tokens": 8192,
+        "tools": [
+          {
+            "type": "function",
+            "function": {
+              "name": "parse_pdf",
+              "description": "Download and parse a PDF document from a URL or a file path to extract text content",
+              "parameters": {
+                "type": "object",
+                "properties": {
+                  "url": {
+                    "type": "string",
+                    "description": "The URL or file path of the PDF document to parse"
+                  }
+                },
+                "required": [
+                  "url"
+                ]
+              }
+            }
+          },
+          {
+            "type": "function",
+            "function": {
+              "name": "convert_currency",
+              "description": "Convert an amount from one currency to another using current exchange rates",
+              "parameters": {
+                "type": "object",
+                "properties": {
+                  "amount": {
+                    "type": "number",
+                    "description": "The amount to convert"
+                  },
+                  "from_currency": {
+                    "type": "string",
+                    "description": "The source currency code (e.g., USD, EUR)"
+                  },
+                  "to_currency": {
+                    "type": "string",
+                    "description": "The target currency code (e.g., USD, EUR)"
+                  }
+                },
+                "required": [
+                  "amount",
+                  "from_currency",
+                  "to_currency"
+                ]
+              }
+            }
+          },
+          {
+            "type": "function",
+            "function": {
+              "name": "calculate",
+              "description": "Evaluate a simple mathematical expression",
+              "parameters": {
+                "type": "object",
+                "properties": {
+                  "expression": {
+                    "type": "string",
+                    "description": "The mathematical expression to evaluate (e.g., '2 + 2 * 3')"
+                  }
+                },
+                "required": [
+                  "expression"
+                ]
+              }
+            }
+          },
+          {
+            "type": "function",
+            "function": {
+              "name": "code_interpreter",
+              "description": "Execute Python code for complex calculations, data processing, and computing totals. Use this for tasks like: summing lists of values, calculating percentages, aggregating financial data, performing multi-step calculations, or any computation requiring variables and intermediate steps.",
+              "parameters": {
+                "type": "object",
+                "properties": {
+                  "code": {
+                    "type": "string",
+                    "description": "Python code to execute. Can use variables, loops, and mathematical operations. Example: 'amounts = [2500000, 2278481, 2541806, 2282609, 2388060]; total = sum(amounts); print(f\"Total: ${total:,.2f}\")"
+                  }
+                },
+                "required": [
+                  "code"
+                ]
+              }
+            }
+          }
+        ],
+        "tool_choice": "auto"
+      },
+      "response": {
+        "id": "chatcmpl-6aca0449d9af3d40d5f0e5b1",
+        "choices": [
+          {
+            "finish_reason": "tool_calls",
+            "index": 0,
+            "logprobs": null,
+            "message": {
+              "content": "",
+              "refusal": null,
+              "role": "assistant",
+              "annotations": null,
+              "audio": null,
+              "function_call": null,
+              "tool_calls": [
+                {
+                  "id": "calculate_3_8d59966e",
+                  "function": {
+                    "arguments": "{\"expression\":\"(0.92 + 0.79 + 149.5) / 3\"}",
+                    "name": "calculate"
+                  },
+                  "type": "function",
+                  "index": 0
+                }
+              ],
+              "reasoning_content": "Now I have the three values:\n- 1 USD = 0.92 EUR\n- 1 USD = 0.79 GBP\n- 1 USD = 149.5 JPY\n\nAverage = (0.92 + 0.79 + 149.5) / 3 = 151.21 / 3 = 50.4033...\n\nLet me calculate this."
+            }
+          }
+        ],
+        "created": 1791624265,
+        "model": "kimi-k3",
+        "object": "chat.completion",
+        "moderation": null,
+        "service_tier": null,
+        "system_fingerprint": null,
+        "usage": {
+          "completion_tokens": 149,
+          "prompt_tokens": 1148,
+          "total_tokens": 1297,
+          "completion_tokens_details": {
+            "accepted_prediction_tokens": null,
+            "audio_tokens": null,
+            "reasoning_tokens": 82,
+            "rejected_prediction_tokens": null
+          },
+          "prompt_tokens_details": {
+            "audio_tokens": null,
+            "cache_write_tokens": 512,
+            "cached_tokens": 512
+          },
+          "cached_tokens": 512
+        }
+      }
+    },
+    {
+      "iteration": 3,
+      "provider": "kimi",
+      "resolved_model": "kimi-k3",
+      "base_url": "https://api.moonshot.cn/v1",
+      "using_openrouter": false,
+      "request": {
+        "model": "kimi-k3",
+        "messages": [
+          {
+            "role": "system",
+            "content": "You are an intelligent assistant with access to tools. \n\nYour task is to solve the given problems using the available tools. Think step by step and use tools as needed.\n\nImportant: When you have gathered all necessary information and computed the final answer, clearly state \"FINAL ANSWER:\" followed by your answer."
+          },
+          {
+            "role": "user",
+            "content": "Convert  USD to EUR, GBP, JPY and average them."
+          },
+          {
+            "content": "I'll convert 1 USD to each currency (EUR, GBP, JPY) and then average the results. Since no amount was specified, I'll use 1 USD.",
+            "refusal": null,
+            "role": "assistant",
+            "annotations": null,
+            "audio": null,
+            "function_call": null,
+            "tool_calls": [
+              {
+                "id": "convert_currency_0_a2784a89",
+                "function": {
+                  "arguments": "{\"amount\":1,\"from_currency\":\"USD\",\"to_currency\":\"EUR\"}",
+                  "name": "convert_currency"
+                },
+                "type": "function",
+                "index": 0
+              },
+              {
+                "id": "convert_currency_1_65c5e952",
+                "function": {
+                  "arguments": "{\"amount\":1,\"from_currency\":\"USD\",\"to_currency\":\"GBP\"}",
+                  "name": "convert_currency"
+                },
+                "type": "function",
+                "index": 1
+              },
+              {
+                "id": "convert_currency_2_eba3b935",
+                "function": {
+                  "arguments": "{\"amount\":1,\"from_currency\":\"USD\",\"to_currency\":\"JPY\"}",
+                  "name": "convert_currency"
+                },
+                "type": "function",
+                "index": 2
+              }
+            ],
+            "reasoning_content": "The user wants to convert USD to EUR, GBP, JPY and average them. But they haven't specified an amount. The default would be 1 USD presumably. Let me convert 1 USD to EUR, GBP, JPY and then average the resulting values.\n\nLet me make the three conversion calls in parallel since they're independent."
+          },
+          {
+            "role": "tool",
+            "tool_call_id": "convert_currency_0_a2784a89",
+            "content": "{\"original_amount\": 1.0, \"from_currency\": \"USD\", \"to_currency\": \"EUR\", \"converted_amount\": 0.92, \"exchange_rate\": 0.92, \"timestamp\": \"2026-10-10T17:24:23.544224\"}"
+          },
+          {
+            "role": "tool",
+            "tool_call_id": "convert_currency_1_65c5e952",
+            "content": "{\"original_amount\": 1.0, \"from_currency\": \"USD\", \"to_currency\": \"GBP\", \"converted_amount\": 0.79, \"exchange_rate\": 0.79, \"timestamp\": \"2026-10-10T17:24:23.544331\"}"
+          },
+          {
+            "role": "tool",
+            "tool_call_id": "convert_currency_2_eba3b935",
+            "content": "{\"original_amount\": 1.0, \"from_currency\": \"USD\", \"to_currency\": \"JPY\", \"converted_amount\": 149.5, \"exchange_rate\": 149.5, \"timestamp\": \"2026-10-10T17:24:23.544415\"}"
+          },
+          {
+            "content": "",
+            "refusal": null,
+            "role": "assistant",
+            "annotations": null,
+            "audio": null,
+            "function_call": null,
+            "tool_calls": [
+              {
+                "id": "calculate_3_8d59966e",
+                "function": {
+                  "arguments": "{\"expression\":\"(0.92 + 0.79 + 149.5) / 3\"}",
+                  "name": "calculate"
+                },
+                "type": "function",
+                "index": 0
+              }
+            ],
+            "reasoning_content": "Now I have the three values:\n- 1 USD = 0.92 EUR\n- 1 USD = 0.79 GBP\n- 1 USD = 149.5 JPY\n\nAverage = (0.92 + 0.79 + 149.5) / 3 = 151.21 / 3 = 50.4033...\n\nLet me calculate this."
+          },
+          {
+            "role": "tool",
+            "tool_call_id": "calculate_3_8d59966e",
+            "content": "{\"expression\": \"(0.92 + 0.79 + 149.5) / 3\", \"result\": 50.403333333333336, \"type\": \"float\"}"
+          }
+        ],
+        "temperature": 1,
+        "max_tokens": 8192,
+        "tools": [
+          {
+            "type": "function",
+            "function": {
+              "name": "parse_pdf",
+              "description": "Download and parse a PDF document from a URL or a file path to extract text content",
+              "parameters": {
+                "type": "object",
+                "properties": {
+                  "url": {
+                    "type": "string",
+                    "description": "The URL or file path of the PDF document to parse"
+                  }
+                },
+                "required": [
+                  "url"
+                ]
+              }
+            }
+          },
+          {
+            "type": "function",
+            "function": {
+              "name": "convert_currency",
+              "description": "Convert an amount from one currency to another using current exchange rates",
+              "parameters": {
+                "type": "object",
+                "properties": {
+                  "amount": {
+                    "type": "number",
+                    "description": "The amount to convert"
+                  },
+                  "from_currency": {
+                    "type": "string",
+                    "description": "The source currency code (e.g., USD, EUR)"
+                  },
+                  "to_currency": {
+                    "type": "string",
+                    "description": "The target currency code (e.g., USD, EUR)"
+                  }
+                },
+                "required": [
+                  "amount",
+                  "from_currency",
+                  "to_currency"
+                ]
+              }
+            }
+          },
+          {
+            "type": "function",
+            "function": {
+              "name": "calculate",
+              "description": "Evaluate a simple mathematical expression",
+              "parameters": {
+                "type": "object",
+                "properties": {
+                  "expression": {
+                    "type": "string",
+                    "description": "The mathematical expression to evaluate (e.g., '2 + 2 * 3')"
+                  }
+                },
+                "required": [
+                  "expression"
+                ]
+              }
+            }
+          },
+          {
+            "type": "function",
+            "function": {
+              "name": "code_interpreter",
+              "description": "Execute Python code for complex calculations, data processing, and computing totals. Use this for tasks like: summing lists of values, calculating percentages, aggregating financial data, performing multi-step calculations, or any computation requiring variables and intermediate steps.",
+              "parameters": {
+                "type": "object",
+                "properties": {
+                  "code": {
+                    "type": "string",
+                    "description": "Python code to execute. Can use variables, loops, and mathematical operations. Example: 'amounts = [2500000, 2278481, 2541806, 2282609, 2388060]; total = sum(amounts); print(f\"Total: ${total:,.2f}\")"
+                  }
+                },
+                "required": [
+                  "code"
+                ]
+              }
+            }
+          }
+        ],
+        "tool_choice": "auto"
+      },
+      "response": {
+        "id": "chatcmpl-6aca044fb3e3a1074bdccb50",
+        "choices": [
+          {
+            "finish_reason": "stop",
+            "index": 0,
+            "logprobs": null,
+            "message": {
+              "content": "Here are the conversion results for 1 USD:\n\n| Currency | Exchange Rate | Converted Amount |\n|----------|--------------|------------------|\n| EUR | 0.92 | 0.92 \u20ac |\n| GBP | 0.79 | 0.79 \u00a3 |\n| JPY | 149.50 | 149.50 \u00a5 |\n\n**Average calculation:**\n(0.92 + 0.79 + 149.50) / 3 = 151.21 / 3 \u2248 **50.40**\n\nNote: This is a simple arithmetic average of the three converted amounts. Since each value is denominated in a different currency, the average (50.40) is a mathematical result rather than a financially meaningful figure.\n\nFINAL ANSWER: 1 USD converts to 0.92 EUR, 0.79 GBP, and 149.50 JPY, with an average of approximately 50.40.",
+              "refusal": null,
+              "role": "assistant",
+              "annotations": null,
+              "audio": null,
+              "function_call": null,
+              "tool_calls": null,
+              "reasoning_content": "The conversions for 1 USD:\n- EUR: 0.92\n- GBP: 0.79\n- JPY: 149.5\n\nAverage = (0.92 + 0.79 + 149.5) / 3 = 151.21 / 3 \u2248 50.40\n\nNote: averaging values in different currencies isn't financially meaningful, but mathematically the average of the three converted amounts is ~50.40."
+            }
+          }
+        ],
+        "created": 1791624275,
+        "model": "kimi-k3",
+        "object": "chat.completion",
+        "moderation": null,
+        "service_tier": null,
+        "system_fingerprint": null,
+        "usage": {
+          "completion_tokens": 302,
+          "prompt_tokens": 1363,
+          "total_tokens": 1665,
+          "completion_tokens_details": {
+            "accepted_prediction_tokens": null,
+            "audio_tokens": null,
+            "reasoning_tokens": 95,
+            "rejected_prediction_tokens": null
+          },
+          "prompt_tokens_details": {
+            "audio_tokens": null,
+            "cache_write_tokens": 256,
+            "cached_tokens": 1024
+          },
+          "cached_tokens": 1024
+        }
+      }
+    }
+  ],
+  "provider": "kimi",
+  "model": "kimi-k3",
+  "base_url": "https://api.moonshot.cn/v1",
+  "using_openrouter": false
+}

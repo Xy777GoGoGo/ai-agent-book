@@ -61,6 +61,7 @@ class AblationTestSuite:
         self.test_results = []
         
     def create_complex_financial_task(self) -> str:
+        #文档字符串，会被 Python 保存成对象的__doc__属性，是代码的一部分，可以用help()查看
         """
         Create a complex task that requires multiple tool calls and reasoning
         
@@ -108,6 +109,7 @@ Present a detailed financial analysis with all conversions and calculations."""
     
     def run_single_test(self, task: str, context_mode: ContextMode, test_name: str,
                         case_name: str = "default") -> Dict[str, Any]:
+        #进行消融实验
         """
         Run a single ablation test
 
@@ -120,6 +122,7 @@ Present a detailed financial analysis with all conversions and calculations."""
         Returns:
             Test results
         """
+        #f-string：Python 格式化字符串
         logger.info(f"\n{'='*60}")
         logger.info(f"Running test: {test_name} [case: {case_name}]")
         logger.info(f"Context mode: {context_mode.value}")

@@ -19,14 +19,19 @@ license = { text = "Apache-2.0" }
 # The core that nearly every experiment needs.
 # openai: 131 declarations across the repo; python-dotenv: 114; requests: 50.
 dependencies = [
+    "markdown>=3.10.2",
     # chapter 8 (self-evolution-eval, self-modifying-agent, trajectory-verifier,
     # gaia-experience) calls client.responses.create, added in 1.68. A lower
     # floor is satisfiable by an already-installed older SDK that then fails at
     # runtime rather than at install time.
     "openai>=1.68",
     "pydantic>=2.9.0",
+    "pypdf2>=3.0.1",
+    "pytest>=9.1.1",
     "python-dotenv>=1.0",
+    "reportlab>=5.0.0",
     "requests>=2.31",
+    "tabulate>=0.10.0",
 ]
 
 # ---------------------------------------------------------------------------

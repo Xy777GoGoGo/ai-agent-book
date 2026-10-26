@@ -1,0 +1,989 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>实验 2-2 / 2-8 练习册 · attention_visualization</title>
+<style>
+  :root{
+    --ink:#1d2230; --ink2:#4b5468; --ink3:#7b8398;
+    --line:#e3e7ef; --bg:#f6f7fa; --card:#fff;
+    --accent:#4338ca; --accent-soft:#eef0ff;
+    --q:#ffffff;
+    --chain:#0e7490; --chain-soft:#ecf9fc; --chain-line:#bfe4ee;
+    --ans:#0f7a4d;  --ans-soft:#eefaf3;  --ans-line:#bfe6d1;
+    --warn:#a2600b; --warn-soft:#fff7e8;
+    --mono:"JetBrains Mono",SFMono-Regular,Consolas,"Liberation Mono",monospace;
+    --radius:14px;
+  }
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{
+    margin:0;background:var(--bg);color:var(--ink);
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei","Noto Sans SC",sans-serif;
+    font-size:15.5px;line-height:1.78;
+  }
+  code{font-family:var(--mono);font-size:.88em;background:#eef1f7;color:#33405c;padding:.12em .38em;border-radius:5px}
+  pre{font-family:var(--mono);background:#1d2130;color:#e5e8f2;border-radius:11px;padding:14px 16px;overflow:auto;font-size:12.5px;line-height:1.65;position:relative;margin:10px 0}
+  pre code{background:none;color:inherit;padding:0;font-size:inherit;white-space:pre}
+  a{color:var(--accent);text-underline-offset:2px}
+  .wrap{max-width:1000px;margin:0 auto;padding:0 22px 90px}
+
+  /* top bar */
+  .topbar{position:sticky;top:0;z-index:30;background:rgba(246,247,250,.93);backdrop-filter:blur(8px);border-bottom:1px solid var(--line)}
+  .topbar-inner{max-width:1000px;margin:0 auto;padding:10px 22px;display:flex;gap:14px;align-items:center}
+  .topbar b{font-size:13.5px;white-space:nowrap}
+  .bar{flex:1;height:8px;background:#e6e9f2;border-radius:99px;overflow:hidden}
+  .bar>i{display:block;height:100%;width:0;background:linear-gradient(90deg,#6366f1,#22a06b);transition:width .25s}
+  .cnt{font-size:12.5px;color:var(--ink2);min-width:50px;text-align:right;font-variant-numeric:tabular-nums}
+  .btn{border:1px solid var(--line);background:#fff;color:var(--ink2);border-radius:8px;padding:4px 10px;font-size:12px;cursor:pointer}
+  .btn:hover{border-color:#c7cddb;color:var(--ink)}
+
+  header.hero{padding:42px 0 6px}
+  .eyebrow{font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--accent);font-weight:700}
+  h1{font-size:30px;line-height:1.32;margin:10px 0 8px;letter-spacing:-.01em}
+  .sub{color:var(--ink2);margin:0 0 18px}
+
+  .callout{border-radius:var(--radius);padding:15px 18px;margin:16px 0;border:1px solid;font-size:14.2px}
+  .callout h4{margin:0 0 6px;font-size:13.5px}
+  .callout ul{margin:6px 0 0;padding-left:20px}
+  .callout li{margin:4px 0}
+  .callout.warn{background:var(--warn-soft);border-color:#f0dcb4;color:#6b4409}
+  .callout.how{background:var(--accent-soft);border-color:#dfe2ff;color:#333c78}
+
+  h2{font-size:20px;margin:42px 0 4px;display:flex;align-items:center;gap:10px;letter-spacing:-.01em}
+  .part-tag{font-size:11px;font-weight:800;letter-spacing:.1em;background:var(--accent);color:#fff;padding:3px 8px;border-radius:6px}
+  .part-tag.b{background:#0891b2}.part-tag.c{background:#7c3aed}.part-tag.d{background:#b45309}.part-tag.e{background:#475569}
+  .lede{color:var(--ink2);margin:0 0 16px;font-size:14.4px}
+
+  /* question card */
+  .q{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:0;margin:14px 0;overflow:hidden;box-shadow:0 1px 2px rgba(16,24,40,.04)}
+  .q.done{border-color:#bfe6d1}
+  .q-head{padding:16px 20px 14px;display:flex;gap:12px;align-items:flex-start;border-bottom:1px solid #f0f2f7}
+  .qnum{font-variant-numeric:tabular-nums;font-weight:800;color:var(--ink3);font-size:13px;padding-top:3px;min-width:26px}
+  .q-title{flex:1;min-width:0}
+  .q-title h3{margin:0;font-size:16.5px;line-height:1.55;font-weight:650}
+  .badges{margin-top:7px;display:flex;gap:6px;flex-wrap:wrap}
+  .badge{font-size:11px;font-weight:700;padding:2px 7px;border-radius:5px;letter-spacing:.03em}
+  .badge.off{background:#eefaf3;color:#0b6b3d}
+  .badge.read{background:#eef1fb;color:#37407a}
+  .badge.mid{background:#fff3e0;color:#8a5310}
+  .badge.hard{background:#fdecec;color:#9d2c26}
+
+  .body{padding:0 20px 16px}
+  .qtext{padding:14px 0 4px;font-size:15px}
+  .qtext p{margin:0 0 8px}
+  .qtext p:last-child{margin:0}
+
+  details.blk{margin:12px 0 0;border-radius:11px;border:1px solid;overflow:hidden}
+  details.blk>summary{cursor:pointer;list-style:none;padding:10px 14px;font-size:13.5px;font-weight:700;display:flex;align-items:center;gap:8px}
+  details.blk>summary::-webkit-details-marker{display:none}
+  details.blk>summary::before{content:"▸";font-size:11px;transition:transform .15s}
+  details.blk[open]>summary::before{transform:rotate(90deg)}
+  details.blk>summary .mini{font-weight:400;font-size:12px;color:var(--ink3);margin-left:auto}
+  details.chain{border-color:var(--chain-line);background:var(--chain-soft)}
+  details.chain>summary{color:#0b5c70}
+  details.ans{border-color:var(--ans-line);background:var(--ans-soft)}
+  details.ans>summary{color:#0b6b45}
+  .blk-body{padding:2px 16px 14px;font-size:14.3px;color:#2c3446}
+  .blk-body p{margin:0 0 8px}
+  .blk-body p:last-child{margin:0}
+  .blk-body ol,.blk-body ul{margin:6px 0 8px;padding-left:22px}
+  .blk-body li{margin:4px 0}
+  .blk-body .note{margin-top:10px;padding:9px 12px;background:#fff;border-left:3px solid #cbd5e1;border-radius:6px;font-size:13.6px;color:var(--ink2)}
+  .blk-body table{width:100%;border-collapse:collapse;font-size:13.2px;margin:8px 0;background:#fff;border-radius:8px;overflow:hidden}
+  .blk-body th,.blk-body td{padding:7px 10px;border-bottom:1px solid #eef1f6;text-align:left;vertical-align:top}
+  .blk-body th{background:#f4f6fa;font-size:12.4px;color:var(--ink2)}
+  .blk-body tr:last-child td{border-bottom:0}
+
+  .mastered{padding:10px 20px 14px;border-top:1px solid #f0f2f7;display:flex;align-items:center;gap:9px;font-size:13px;color:var(--ink2)}
+  .mastered input{appearance:none;width:18px;height:18px;border:2px solid #c9cfdd;border-radius:5px;background:#fff;cursor:pointer;position:relative;flex:none}
+  .mastered input:checked{background:#0f7a4d;border-color:#0f7a4d}
+  .mastered input:checked::after{content:"";position:absolute;left:4px;top:1px;width:5px;height:9px;border:solid #fff;border-width:0 2.5px 2.5px 0;transform:rotate(45deg)}
+
+  .copy{position:absolute;top:8px;right:8px;border:1px solid #3b4257;background:#262b3c;color:#aeb6cc;font-size:11px;padding:3px 8px;border-radius:6px;cursor:pointer;opacity:0;transition:opacity .15s}
+  pre:hover .copy{opacity:1}
+  .copy:hover{color:#fff;border-color:#5a6484}
+
+  footer{margin-top:52px;padding-top:18px;border-top:1px solid var(--line);color:var(--ink3);font-size:13px}
+  @media (max-width:640px){
+    h1{font-size:24px}
+    .q-head{padding:14px 15px}
+    .body{padding:0 15px 14px}
+  }
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="topbar-inner">
+    <b>实验 2-2 / 2-8 练习册</b>
+    <div class="bar"><i id="bar"></i></div>
+    <span class="cnt" id="cnt">0 / 17</span>
+    <button class="btn" id="expand">全部展开</button>
+    <button class="btn" id="reset">重置</button>
+  </div>
+</div>
+
+<div class="wrap">
+
+<header class="hero">
+  <div class="eyebrow">chapter2 / attention_visualization</div>
+  <h1>注意力可视化与状态栏对照:17 个问题</h1>
+  <p class="sub">每题分三段:<b>问题本体</b> · <b>思考链路</b> · <b>参考答案</b>。后两段默认折叠 —— 先自己答,再展开思考链路对照思路,最后才看答案。</p>
+</header>
+
+<div class="callout warn">
+  <h4>先说你机器上的真实情况(会改变学习方式)</h4>
+  <ul>
+    <li>当前 venv 里 <b>没有</b> <code>torch</code> / <code>transformers</code> / <code>numpy</code> / <code>matplotlib</code>。</li>
+    <li><code>uv sync --locked --extra ch2</code> 在这台机器上<b>装不上</b>:锁文件把所有非 Linux 平台的 <code>numpy</code> 钉在 1.26.4,而它没有 Python 3.13 的 wheel,uv 会退化成源码构建、再因缺 C 编译器失败。</li>
+    <li>所以这份练习<b>不依赖跑模型</b>。好消息是:仓库里已提交了 5 份真实的 <code>attention_matrices.npz</code>,用标准库就能解析——下面第 4 题就让你亲手做,后面的数值题都以这些真实数据为准。</li>
+  </ul>
+</div>
+
+<div class="callout how">
+  <h4>建议的使用顺序</h4>
+  <ul>
+    <li>每一题:先只看「问题本体」,用 30 秒在纸上写一个答案(哪怕只有关键词)。</li>
+    <li>展开「思考链路」——它讲的是<b>怎么想到</b>,不是答案本身。如果你发现自己跳过了某个步骤,回到源码补上。</li>
+    <li>最后展开「参考答案」,和自己的答案逐条对照。不一致的地方才是你真正要学会的内容。</li>
+    <li>勾选底部的「已掌握」,进度存在 localStorage,关掉页面再打开会恢复。</li>
+  </ul>
+</div>
+
+<!-- ============================================================ -->
+<h2><span class="part-tag">A</span> 先搞清这个实验是什么</h2>
+<p class="lede">这一组解决"我在学什么"和"在这台机器上怎么学"。</p>
+
+<!-- Q1 -->
+<section class="q" data-q="1">
+  <div class="q-head">
+    <div class="qnum">01</div>
+    <div class="q-title">
+      <h3>这个目录里放了两个实验(2-2 注意力可视化、2-8 状态栏对照)。它们各自要证明什么?为什么共用一个目录?</h3>
+      <div class="badges"><span class="badge read">读书题</span><span class="badge off">零依赖</span></div>
+    </div>
+  </div>
+  <div class="body">
+    <div class="qtext">
+      <p>提示:两者的技术底座相同,但研究问题完全不同。先分清"观察现象"和"用观察当证据"。</p>
+    </div>
+    <details class="blk chain">
+      <summary>思考链路<span class="mini">先想 30 秒</span></summary>
+      <div class="blk-body">
+        <ol>
+          <li>读 <code>README.md</code> 顶部两行标题,确认它挂的是书中哪两个实验编号。</li>
+          <li>回到正文 <code>book/chapter2.md</code> 的实验框:第 453 行是实验 2-2,第 853 行是实验 2-8。分别看它们各自的"结论句"。</li>
+          <li>问自己:2-2 的结论是关于<b>模型内部结构</b>的,还是关于<b>某个工程手段是否有效</b>的?2-8 呢?</li>
+          <li>最后看代码:两个实验是不是都在做同一件事——用 <code>attn_implementation="eager"</code> 把注意力张量抓下来?如果是,共用目录就说得通了。</li>
+        </ol>
+      </div>
+    </details>
+    <details class="blk ans">
+      <summary>参考答案</summary>
+      <div class="blk-body">
+        <p><b>2-2 观察结构。</b>它要证明真实模型里存在三种可观测现象:因果三角(每个 token 只能看自己和之前)、attention sink(首 token 吸收多余权重)、以及思考区与答案区各自的自注意力三角形;顺带展示位置偏好。这些是关于模型本身的陈述。</p>
+        <p><b>2-8 用观察当证据。</b>它要回答的是"把隐式状态提炼成显式状态栏,能不能改变小模型行为"。注意力在这里不是研究对象,而是<b>佐证手段</b>——用"注意力是否集中到状态栏"来解释行为差异。</p>
+        <p><b>为什么同目录:</b>两者都需要同一套能力——用 Qwen3-0.6B、以 eager 模式抓完整注意力张量、按层取矩阵、画热力图。模型、抓取管线、可视化代码完全复用,只有输入构造(`<agent_status>` 注入)和判据不同。</p>
+      </div>
+    </details>
+  </div>
+  <label class="mastered"><input type="checkbox" data-m="1"> 已掌握</label>
+</section>
+
+<!-- Q2 -->
+<section class="q" data-q="2">
+  <div class="q-head">
+    <div class="qnum">02</div>
+    <div class="q-title">
+      <h3>这台机器没有 torch/numpy,<code>--extra ch2</code> 也装不上。你还能从这个实验学到什么?列出三条不需要跑模型的路径。</h3>
+      <div class="badges"><span class="badge off">零依赖</span><span class="badge mid">方法论</span></div>
+    </div>
+  </div>
+  <div class="body">
+    <div class="qtext">
+      <p>这题考的是"没有运行环境时如何继续做研究",不是妥协方案。</p>
+    </div>
+    <details class="blk chain">
+      <summary>思考链路<span class="mini">先想 30 秒</span></summary>
+      <div class="blk-body">
+        <ol>
+          <li>把「运行实验」和「理解实验」分开。前者需要 GPU 与依赖,后者需要代码和产物。</li>
+          <li>清点仓库:哪些产物已经提交?(<code>git ls-files</code>)哪些被 <code>.gitignore</code> 排除了?这决定了你能读到什么。</li>
+          <li>再看代码:哪些函数是纯逻辑(实验设计、判据、文件格式),哪些必须张量才能跑?</li>
+        </ol>
+      </div>
+    </details>
+    <details class="blk ans">
+      <summary>参考答案</summary>
+      <div class="blk-body">
+        <p>三条路径:</p>
+        <ol>
+          <li><b>解析已提交的真实张量。</b><code>runs/*/attention_matrices.npz</code> 是 git 跟踪的,而 <code>.npz</code> 本质是 zip 包着 <code>.npy</code>,用标准库 <code>zipfile</code> + <code>struct</code> 就能读,不需要 numpy。第 4 题就是这件事。</li>
+          <li><b>读抓取机制。</b>为什么必须 eager、为什么前端只存最后一行、层与头怎么选、正负索引怎么解析——这些是纯代码阅读,和第 3、5、6 题直接对应。</li>
+          <li><b>读判据与证据链。</b><code>validation/latest.json</code> 的 9 个 gate、<code>matrix_metrics</code> 的算法、以及 <code>.gitignore</code> 说明了哪些产物没进仓库。这一条练的是证据评审能力。</li>
+        </ol>
+        <div class="note">顺带一个真实发现:这个目录的 <code>.gitignore</code> 里有 <code>*.json</code> 和 <code>*.png</code>,所以 <code>evidence.json</code>、<code>comparison.json</code> 和热力图 PNG 都没有进仓库;而 <code>validation/latest.json</code> 在你这个检出里也是<b>未跟踪</b>文件(本地存在,但 <code>git ls-files validation/</code> 是空的)。也就是说全新克隆只能拿到张量,拿不到证据 JSON 和图片。这本身就是一个值得追问的复现性问题(见第 15 题)。</div>
+      </div>
+    </details>
+  </div>
+  <label class="mastered"><input type="checkbox" data-m="2"> 已掌握</label>
+</section>
+
+<!-- Q3 -->
+<section class="q" data-q="3">
+  <div class="q-head">
+    <div class="qnum">03</div>
+    <div class="q-title">
+      <h3>为什么必须 <code>attn_implementation="eager"</code>?默认的 SDPA 或 FlashAttention 会怎样?</h3>
+      <div class="badges"><span class="badge read">代码题</span><span class="badge off">零依赖</span></div>
+    </div>
+  </div>
+  <div class="body">
+    <div class="qtext">
+      <p>提示:想清楚"注意力权重矩阵"在推理优化里被省掉了什么,以及省掉它的代价与收益。</p>
+    </div>
+    <details class="blk chain">
+      <summary>思考链路<span class="mini">先想 30 秒</span></summary>
+      <div class="blk-body">
+        <ol>
+          <li>在 <code>agent.py:196</code> 找到这个参数,看它为什么写在 <code>from_pretrained</code> 里。</li>
+          <li>在 <code>run_attention_experiment.py</code> 的 <code>capture()</code> 里找一句异常信息,它会告诉你拿不到张量时会发生什么。</li>
+          <li>回忆 FlashAttention 的设计目标:它要减少的是什么?(不是减少计算量,而是减少 HBM 读写与中间矩阵落地。)</li>
+        </ol>
+      </div>
+    </details>
+    <details class="blk ans">
+      <summary>参考答案</summary>
+      <div class="blk-body">
+        <p><b>eager 会真实物化权重矩阵。</b>它把 <code>[batch, heads, seq, seq]</code> 的注意力权重算出来并留在内存里,所以 <code>output_attentions=True</code> 能拿到全部层的张量。</p>
+        <p><b>FlashAttention / SDPA 不会。</b>它们是融合 kernel,把 softmax 与加权求和合并,刻意不把 <code>seq×seq</code> 的中间矩阵写回显存——这正是它们快的原因。于是 <code>capture()</code> 会直接 <code>raise RuntimeError("model returned no eager-attention tensors")</code>。这是<b>故意 fail closed</b>,而不是静默退回一个空结果。</p>
+        <p><b>代价:</b>显存与计算随序列长度平方增长。580 个 token、多层多头、float32,单层就已经是百万级元素。这也解释了为什么这个实验只用 0.6B 小模型和短序列:不是不想用大模型,而是 eager 的平方成本不允许。</p>
+      </div>
+    </details>
+  </div>
+  <label class="mastered"><input type="checkbox" data-m="3"> 已掌握</label>
+</section>
+
+<!-- ============================================================ -->
+<h2><span class="part-tag b">B</span> 数据形态:npz 里到底是什么</h2>
+<p class="lede">这一组把"注意力矩阵"从概念变成你能亲手读出的字节。</p>
+
+<!-- Q4 -->
+<section class="q" data-q="4">
+  <div class="q-head">
+    <div class="qnum">04</div>
+    <div class="q-title">
+      <h3>不看源码,说出 v3 那次运行的 <code>.npz</code> 里有哪些矩阵、各自形状和 dtype。不装 numpy 也能做到。</h3>
+      <div class="badges"><span class="badge mid">动手题</span><span class="badge off">纯标准库</span></div>
+    </div>
+  </div>
+  <div class="body">
+    <div class="qtext">
+      <p>目标:亲手打开一个 <code>.npz</code>,读懂它的头部。这一题做完,你就掌握了本实验唯一的"数据入口"。</p>
+    </div>
+    <details class="blk chain">
+      <summary>思考链路<span class="mini">先想 30 秒</span></summary>
+      <div class="blk-body">
+        <ol>
+          <li><code>.npz</code> 是 zip 归档 → 用 <code>zipfile.ZipFile(...).namelist()</code> 先列成员名,不要猜。</li>
+          <li><code>.npy</code> 结构 = 6 字节魔数 <code>\x93NUMPY</code> + 2 字节版本 + 头长度(版本 1.0 是 2 字节小端) + 一个 Python 字典的文本表示 + 原始数据。</li>
+          <li>那个字典用 <code>ast.literal_eval</code> 就能安全解析。这里有个真实的坑:字典键是 <code>descr</code>,不是 <code>dtype</code>。如果你按 <code>dtype</code> 去找,会得到 <code>None</code>。</li>
+          <li>最后按 <code>descr</code> 决定用 <code>&lt;f</code> 还是 <code>&lt;d</code> 去 <code>struct.unpack</code>。</li>
+        </ol>
+      </div>
+    </details>
+    <details class="blk ans">
+      <summary>参考答案</summary>
+      <div class="blk-body">
+        <p><code>runs/exp2-2-qwen3-0.6b-20260730-v3/attention_matrices.npz</code> 含 6 个成员:</p>
+        <table>
+          <thead><tr><th>成员</th><th>shape</th><th>dtype</th></tr></thead>
+          <tbody>
+            <tr><td><code>simple_layer_0</code></td><td>(9, 9)</td><td><code>&lt;f4</code></td></tr>
+            <tr><td><code>simple_layer_13</code></td><td>(9, 9)</td><td><code>&lt;f4</code></td></tr>
+            <tr><td><code>simple_layer_27</code></td><td>(9, 9)</td><td><code>&lt;f4</code></td></tr>
+            <tr><td><code>generated_layer_0</code></td><td>(580, 580)</td><td><code>&lt;f4</code></td></tr>
+            <tr><td><code>generated_layer_13</code></td><td>(580, 580)</td><td><code>&lt;f4</code></td></tr>
+            <tr><td><code>generated_layer_27</code></td><td>(580, 580)</td><td><code>&lt;f4</code></td></tr>
+          </tbody>
+        </table>
+        <p>裸头部原文长这样(版本 1.0,头长 118 字节):</p>
+        <pre><code>{'descr': '&lt;f4', 'fortran_order': False, 'shape': (9, 9), }</code></pre>
+        <p>可运行的纯标准库读取器见 <a href="#appendix-code">附录 B</a>,我已在本机跑通。</p>
+      </div>
+    </details>
+  </div>
+  <label class="mastered"><input type="checkbox" data-m="4"> 已掌握</label>
+</section>
+
+<!-- Q5 -->
+<section class="q" data-q="5">
+  <div class="q-head">
+    <div class="qnum">05</div>
+    <div class="q-title">
+      <h3>为什么 simple 是 9×9、generated 是 580×580?这两个矩阵测的是同一件事吗?</h3>
+      <div class="badges"><span class="badge read">代码题</span><span class="badge off">零依赖</span></div>
+    </div>
+  </div>
+  <div class="body">
+    <div class="qtext">
+      <p>提示:注意"一次前向"和"逐步生成"的区别。矩阵形状里藏着实验设计。</p>
+    </div>
+    <details class="blk chain">
+      <summary>思考链路<span class="mini">先想 30 秒</span></summary>
+      <div class="blk-body">
+        <ol>
+          <li>读 <code>run_attention_experiment.py</code> 的 <code>main()</code>,找到两次 <code>capture()</code> 调用:第一次传 <code>simple</code>,第二次传什么?</li>
+          <li>看 <code>simple</code> 的 tokenize:提示词是 <code>北京 的 天气 怎么样</code>,且 <code>add_special_tokens=False</code>。数一下大概是几个 token。</li>
+          <li>再想:如果是"增量生成时的张量",每一步的形状应该是什么?和 580×580 对得上吗?</li>
+        </ol>
+      </div>
+    </details>
+    <details class="blk ans">
+      <summary>参考答案</summary>
+      <div class="blk-body">
+        <p><b>simple</b> 只把提示词(9 个 token)做一次前向,得到 9×9。</p>
+        <p><b>generated</b> 先让模型生成一段包含 <code>&lt;think&gt;</code> 与最终答案的内容,再把拼好的整段 580 个 token <b>整体</b>前向一次,得到 580×580。</p>
+        <p><b>它们是同一类东西</b>——都是"整段一次前向"得到的完整 n×n 注意力矩阵,不是逐步生成时的增量张量(那样每一步只会多一行)。区别只在长度:9×9 能看清单个 query 的权重分配,而 580×580 才装得下思考区与答案区两个各自的自注意力三角形。</p>
+        <div class="note">这也是为什么 <code>region_indices()</code> 要在 generated 的 token 序列里找 <code>&lt;think&gt;</code> 和 <code>&lt;/think&gt;</code>——它需要把连续的行切成"思考区"和"答案区"再分别观察。</div>
+      </div>
+    </details>
+  </div>
+  <label class="mastered"><input type="checkbox" data-m="5"> 已掌握</label>
+</section>
+
+<!-- Q6 -->
+<section class="q" data-q="6">
+  <div class="q-head">
+    <div class="qnum">06</div>
+    <div class="q-title">
+      <h3>前端轨迹 JSON 里的 <code>attention_matrix</code> 和 npz 里的矩阵不是一回事。差别在哪?混淆会导致什么误判?</h3>
+      <div class="badges"><span class="badge read">代码题</span><span class="badge hard">易错</span></div>
+    </div>
+  </div>
+  <div class="body">
+    <div class="qtext">
+      <p>这是全实验最容易搞混的一处,也是很多"看到奇怪结论"的源头。</p>
+    </div>
+    <details class="blk chain">
+      <summary>思考链路<span class="mini">先想 30 秒</span></summary>
+      <div class="blk-body">
+        <ol>
+          <li>读 <code>agent.py:246</code>:<code>attention_weights[0, :, -1, :].mean(dim=0)</code>。注意下标 <code>-1</code> 取的是什么维度。</li>
+          <li>再读 <code>visualization.py:70</code>:它是怎么把一堆变长向量拼成一个矩阵的?填不满的位置填了什么?</li>
+          <li>对比 <code>run_attention_experiment.capture()</code>:<code>attentions[index][0].float().mean(dim=0)</code>,这里没有 <code>-1</code>。</li>
+        </ol>
+      </div>
+    </details>
+    <details class="blk ans">
+      <summary>参考答案</summary>
+      <div class="blk-body">
+        <p><b>前端路径(agent.py):</b>每一步只保存<b>当时最后一行的向量</b>,长度等于该步的序列长度,所以整体是阶梯形。可视化时用 <code>np.zeros((steps, max_len))</code> 补齐成矩形,未填的位置全是 <code>0</code>。</p>
+        <p><b>证据路径(run_attention_experiment):</b>保存完整 <code>n×n</code> 矩阵,每行每个 query 位置都有真实权重。</p>
+        <p><b>误判:</b>补齐的 0 看起来像"注意力极低",但它其实是<b>没有数据</b>,不是"模型不关注"。比如在阶梯矩阵上算 sink 或位置偏好,会得到系统性偏低的结论;更糟的是有人会由此得出"注意力很稀疏"的结论,而那只是补零造成的视觉假象。</p>
+        <div class="note">记住一句话:<b>0 在这里有两种完全不同的含义</b>——"被因果掩码挡住"(真实权重为 0)与"这里没有观测"(补零)。两者在数值上一样,在语义上相反。</div>
+      </div>
+    </details>
+  </div>
+  <label class="mastered"><input type="checkbox" data-m="6"> 已掌握</label>
+</section>
+
+<!-- ============================================================ -->
+<h2><span class="part-tag c">C</span> 判据与测量:证据是怎么算出来的</h2>
+<p class="lede">这一组的数值都来自仓库里真实提交的张量,你可以用附录 A 的表逐项核对。</p>
+
+<!-- Q7 -->
+<section class="q" data-q="7">
+  <div class="q-head">
+    <div class="qnum">07</div>
+    <div class="q-title">
+      <h3>因果三角是怎么被"数值验证"的?为什么不能靠看图判断?</h3>
+      <div class="badges"><span class="badge read">代码题</span><span class="badge off">零依赖</span></div>
+    </div>
+  </div>
+  <div class="body">
+    <div class="qtext">
+      <p>提示:找 gate 名字里带 <code>causal</code> 的那一项,看它要求什么。</p>
+    </div>
+    <details class="blk chain">
+      <summary>思考链路<span class="mini">先想 30 秒</span></summary>
+      <div class="blk-body">
+        <ol>
+          <li>在 <code>matrix_metrics()</code> 里找 <code>np.triu_indices(length, k=1)</code>。注意 <code>k=1</code> 意味着<b>不含对角线</b>。</li>
+          <li>看它算出两个量:<code>causal_upper_triangle_max</code> 和 <code>..._sum</code>。为什么两个都要?</li>
+          <li>再看 gate 的判定阈值,以及原理:causal mask 把未来位置的 logits 设成 <code>-inf</code>,softmax 后应该是多少?</li>
+        </ol>
+      </div>
+    </details>
+    <details class="blk ans">
+      <summary>参考答案</summary>
+      <div class="blk-body">
+        <p>取严格上三角(第 j 列大于第 i 行,即"看未来"的位置)的全部元素,算最大值与总和。gate 要求 <b>最大值 ≤ 1e-7</b>。</p>
+        <p>我实测这 8 个矩阵的上三角最大值<b>全部恰好是 0.0</b>——因为 softmax 在 <code>-inf</code> 位置上的输出是精确的 0,不是"很小的数"。</p>
+        <p><b>为什么不能看图:</b>热力图经过色图映射、对数缩放和插值,"看起来像三角形"既不可复现,也无法排除渲染误差;更关键的是,视觉判断无法区分"真的为 0"和"小到看不出来"。判据必须是可计算的、有明确阈值的、能贴进证据文件的。</p>
+        <p>同时保留 max 和 sum:max 抓"有没有单个位置违规",sum 抓"整体泄漏了多少"。极端情况下,一个很大的违规会被淡出视野,而 sum 能兜住。</p>
+      </div>
+    </details>
+  </div>
+  <label class="mastered"><input type="checkbox" data-m="7"> 已掌握</label>
+</section>
+
+<!-- Q8 -->
+<section class="q" data-q="8">
+  <div class="q-head">
+    <div class="qnum">08</div>
+    <div class="q-title">
+      <h3>attention sink 怎么定义、怎么算?第 0 层和第 27 层差多少?为什么会出现?</h3>
+      <div class="badges"><span class="badge mid">测量题</span><span class="badge hard">有陷阱</span></div>
+    </div>
+  </div>
+  <div class="body">
+    <div class="qtext">
+      <p>提示:定义很简单,但"要不要把第 0 行算进去"会显著改变短矩阵的结果。</p>
+    </div>
+    <details class="blk chain">
+      <summary>思考链路<span class="mini">先想 30 秒</span></summary>
+      <div class="blk-body">
+        <ol>
+          <li>在 <code>matrix_metrics()</code> 里找 sink 的定义:<code>matrix[:, 0].mean()</code>。翻译成自然语言——它对哪一维取均值?</li>
+          <li>分层对比:层 0 / 13 / 27 的 sink 是递增还是递减?</li>
+          <li>想第 0 行这个特殊情况:第一个 token 作为 query 时,它能看见几个 key?它的 self-attention 必然是多少?</li>
+          <li>再回到 softmax 的硬约束:每行权重和必须为 1,模型能表达"谁都不关注"吗?</li>
+        </ol>
+      </div>
+    </details>
+    <details class="blk ans">
+      <summary>参考答案</summary>
+      <div class="blk-body">
+        <p><b>定义:</b>sink share = 第 0 列(第一个 key)在所有 query 行上的平均权重。它衡量"整张矩阵有多少注意力被倾倒到序列开头"。</p>
+        <p><b>实测(含第 0 行,与官方 <code>matrix_metrics</code> 口径一致):</b></p>
+        <table>
+          <thead><tr><th>矩阵</th><th>层 0</th><th>层 13</th><th>层 27</th></tr></thead>
+          <tbody>
+            <tr><td>simple(9×9)</td><td>0.147</td><td>0.739</td><td><b>0.832</b></td></tr>
+            <tr><td>generated(580×580)</td><td>0.004</td><td>0.280</td><td><b>0.732</b></td></tr>
+          </tbody>
+        </table>
+        <p>明显的单调递增:浅层接近局部/对角,深层把大量权重堆到首 token。</p>
+        <p><b>成因:</b>softmax 强制每行权重和为 1,模型无法表达"不关注任何东西"。当当前 token 与前面都不太相关时,这些"多余权重"必须落到某个稳定位置,序列开头的固定 token 就成了公共回收站。这是数学约束的产物,不是缺陷。</p>
+        <p><b>那个陷阱:</b>第 0 行只有自己一个可见 key,所以 <code>M[0][0]</code> 恒为 <b>1.000</b>(8 个矩阵全部如此)。对 9×9 这种短矩阵,把这一行算进去会把 layer 0 的 sink 从 <b>0.040 抬到 0.147</b>(约 3.7 倍);对 580×580 则几乎无影响(0.731 与 0.732)。所以短矩阵报告 sink 时必须说明是否排除第 0 行,否则不同长度的结果不可比。</p>
+      </div>
+    </details>
+  </div>
+  <label class="mastered"><input type="checkbox" data-m="8"> 已掌握</label>
+</section>
+
+<!-- Q9 -->
+<section class="q" data-q="9">
+  <div class="q-head">
+    <div class="qnum">09</div>
+    <div class="q-title">
+      <h3>README 说最后一层 sink "通常 75–85%",但你实测 generated 是 73.2%。这算实验不合格吗?</h3>
+      <div class="badges"><span class="badge mid">判断题</span><span class="badge hard">核心观念</span></div>
+    </div>
+  </div>
+  <div class="body">
+    <div class="qtext">
+      <p>这题考的是"观测值与验收门槛"的边界——很多实验翻车就翻在这里。</p>
+    </div>
+    <details class="blk chain">
+      <summary>思考链路<span class="mini">先想 30 秒</span></summary>
+      <div class="blk-body">
+        <ol>
+          <li>分清两句话:"通常是 75–85%"是<b>经验描述</b>,"必须 ≥75%"才是<b>门槛</b>。README 用的是哪一句?</li>
+          <li>去 <code>run_attention_experiment.py</code> 里搜 <code>observational_note</code>,看作者自己怎么界定这个数值。</li>
+          <li>逐个检查 9 个 gate:有没有一条是关于 sink 大小的?</li>
+          <li>反过来想:如果把观测值当门槛,会发生什么行为?</li>
+        </ol>
+      </div>
+    </details>
+    <details class="blk ans">
+      <summary>参考答案</summary>
+      <div class="blk-body">
+        <p><b>不算。</b>README 说的是"通常",是经验区间;73.2% 与 75% 只差约 2 个百分点,在"头平均 + 单次运行 + 单一 prompt + 0.6B 小模型"的条件下完全合理。simple 那组在同一层是 83.2%,落在区间内,说明现象本身是稳定的。</p>
+        <p>更直接的证据:代码里有一句明写的 <code>observational_note</code>——"Position-bias and sink magnitudes are measured outcomes, not response-conditioned completion gates."而且 9 个 gate 里没有任何一条检查 sink 的具体数值。</p>
+        <p><b>为什么这个设计是对的:</b>如果把"预期值"设成门槛,实验者就会为了让数字达标去调 prompt、挑层、换头平均方式——最后得到的不是"现象是否存在"的答案,而是"我能不能凑出这个数"的答案。观测结果和验收门槛必须分开写。</p>
+      </div>
+    </details>
+  </div>
+  <label class="mastered"><input type="checkbox" data-m="9"> 已掌握</label>
+</section>
+
+<!-- Q10 -->
+<section class="q" data-q="10">
+  <div class="q-head">
+    <div class="qnum">10</div>
+    <div class="q-title">
+      <h3><code>position_mass_per_token</code> 在测什么?为什么只取响应的后半段行?这个指标有什么局限?</h3>
+      <div class="badges"><span class="badge mid">测量题</span><span class="badge hard">局限分析</span></div>
+    </div>
+  </div>
+  <div class="body">
+    <div class="qtext">
+      <p>提示:注意它切的是行还是列,以及分母是什么。</p>
+    </div>
+    <details class="blk chain">
+      <summary>思考链路<span class="mini">先想 30 秒</span></summary>
+      <div class="blk-body">
+        <ol>
+          <li>读 <code>matrix_metrics()</code> 第 61-77 行:<code>thirds = np.array_split(arange(length), 3)</code> 切的是<b>哪个维度</b>?</li>
+          <li><code>response_rows = arange(max(0, length // 2), length)</code> —— 为什么是后半段?</li>
+          <li>最后除以 <code>max(1, len(response_rows) * len(indices))</code> —— 得到的是总量还是"每格平均质量"?</li>
+        </ol>
+      </div>
+    </details>
+    <details class="blk ans">
+      <summary>参考答案</summary>
+      <div class="blk-body">
+        <p><b>它在测位置偏好:</b>把 <b>key 位置</b>按三等分(开头/中间/结尾),只统计<b>响应行</b>(序列后半段)对每一段的平均注意力质量。这对应"Lost in the Middle"式的观察。</p>
+        <p><b>为什么只取后半段:</b>序列前半段主要是 prompt 读入,那些 query 行还在"理解输入",不反映生成时的检索偏好。只保留后半段,才更接近"模型在回答时去哪找信息"。</p>
+        <p>实测 generated layer 27 的三段值为 <code>0.0038 / 0.0005 / 0.0008</code>(开头明显高);simple layer 27 为 <code>0.269 / 0.038 / 0.026</code>。</p>
+        <p><b>三个局限:</b></p>
+        <ol>
+          <li><code>length // 2</code> 是粗糙切分,不区分 prompt 与生成边界——对 generated 矩阵,这个边界其实由 <code>context_length</code> 给定了,却没用上。</li>
+          <li>它除掉了"行数 × 列数",得到的是<b>每格平均质量</b>,绝对值很小;不同长度的矩阵之间只能比比值,不能比大小。</li>
+          <li>开头三分段同时包含 sink 和特殊 token(<code>&lt;|im_start|&gt;</code> 之类),所以"开头偏好"里混着 sink 的贡献,不是纯粹的语义位置偏好。</li>
+        </ol>
+      </div>
+    </details>
+  </div>
+  <label class="mastered"><input type="checkbox" data-m="10"> 已掌握</label>
+</section>
+
+<!-- Q11 -->
+<section class="q" data-q="11">
+  <div class="q-head">
+    <div class="qnum">11</div>
+    <div class="q-title">
+      <h3>9 个 gate 分别防什么失败?把它们分成三类。</h3>
+      <div class="badges"><span class="badge read">证据题</span><span class="badge off">零依赖</span></div>
+    </div>
+  </div>
+  <div class="body">
+    <div class="qtext">
+      <p>这题练的是"证据设计"——每个检查项都在堵一种特定的造假或失误路径。</p>
+    </div>
+    <details class="blk chain">
+      <summary>思考链路<span class="mini">先想 30 秒</span></summary>
+      <div class="blk-body">
+        <ol>
+          <li>打开 <code>validation/latest.json</code>,把 <code>gates</code> 的 9 个键抄下来。</li>
+          <li>对每一个问:"如果没有它,什么样的假证据能蒙混过关?"</li>
+          <li>试着按"它在证明什么"归类。提示:有些在证明输入是真的,有些在证明产物完整,有些在证明现象确实出现。</li>
+        </ol>
+      </div>
+    </details>
+    <details class="blk ans">
+      <summary>参考答案</summary>
+      <div class="blk-body">
+        <table>
+          <thead><tr><th>类别</th><th>gate</th><th>堵的失败</th></tr></thead>
+          <tbody>
+            <tr><td rowspan="3"><b>输入真实性</b></td><td><code>exact_model</code></td><td>换了模型却仍标称 Qwen3-0.6B</td></tr>
+            <tr><td><code>pinned_real_model_revision</code></td><td>用了另一个 revision,结果不可复现</td></tr>
+            <tr><td><code>beijing_prompt_exact</code></td><td>prompt 被改动或改写</td></tr>
+            <tr><td rowspan="3"><b>结构性质</b></td><td><code>causal_triangle_exact</code></td><td>拿到的不是自回归注意力,或掩码失效</td></tr>
+            <tr><td><code>thinking_region_present</code></td><td>生成的序列里根本没有思考区</td></tr>
+            <tr><td><code>final_answer_region_present</code></td><td>没有答案区,第二个三角形无从观察</td></tr>
+            <tr><td rowspan="3"><b>产物完整</b></td><td><code>three_layers_captured</code></td><td>只抓了一层,无法比较深度趋势</td></tr>
+            <tr><td><code>lossless_matrices_present</code></td><td>只有截图/降采样数据,无法复算</td></tr>
+            <tr><td><code>heatmaps_present</code></td><td>可视化产物缺失,读者无法核对</td></tr>
+          </tbody>
+        </table>
+        <p><b>为什么三类缺一不可:</b>只有结构性质,别人可以手搓一个矩阵骗过检查;只有输入真实性,你无法证明拿到的张量确实呈现了该结构;没有产物完整性,结论就无法被第三方复算。这个三分法可以直接搬到任何"用产物证明结论"的实验上。</p>
+      </div>
+    </details>
+  </div>
+  <label class="mastered"><input type="checkbox" data-m="11"> 已掌握</label>
+</section>
+
+<!-- ============================================================ -->
+<h2><span class="part-tag d">D</span> 状态栏实验与批判性阅读</h2>
+<p class="lede">实验 2-8 的价值不在于"证明了状态栏有用",而在于它是一个很好的样本:结论成立,但证据口径需要审视。</p>
+
+<!-- Q12 -->
+<section class="q" data-q="12">
+  <div class="q-head">
+    <div class="qnum">12</div>
+    <div class="q-title">
+      <h3>2-8 的状态栏注入在哪一步?为什么用 <code>role: "user"</code> 并且放在最后?</h3>
+      <div class="badges"><span class="badge read">代码题</span><span class="badge off">零依赖</span></div>
+    </div>
+  </div>
+  <div class="body">
+    <div class="qtext">
+      <p>提示:位置和角色这两个选择,各自服务于一个不同的工程目标。</p>
+    </div>
+    <details class="blk chain">
+      <summary>思考链路<span class="mini">先想 30 秒</span></summary>
+      <div class="blk-body">
+        <ol>
+          <li>读 <code>status_message()</code>:它返回的 <code>role</code> 是什么?</li>
+          <li>看两个 gate:<code>status_at_end</code> 和 <code>same_base_trajectory</code>,它们分别约束了什么?</li>
+          <li>回到正文 851 行,找"强制性的注意力引导"那句话;再想 KV Cache 对前缀稳定性的要求。</li>
+        </ol>
+      </div>
+    </details>
+    <details class="blk ans">
+      <summary>参考答案</summary>
+      <div class="blk-body">
+        <p>它作为一条<b>额外的 user 消息</b>追加在轨迹末尾。<code>status_message()</code> 返回的正是 <code>{"role": "user", "content": "&lt;agent_status&gt;..."}</code>。三个 gate 共同锁定这件事:<code>status_at_end</code> 要求它确实是最后一条,<code>same_base_trajectory</code> 要求除它之外两条轨迹完全一致,<code>control_has_no_status</code> 要求对照组不含该标记。</p>
+        <p><b>放末尾:</b>位置上最接近即将生成的新 token,能获得更高注意力权重——这正是"强制性的注意力引导"。</p>
+        <p><b>用 user 而不是 system:</b>不动静态前缀。系统提示 + 工具定义是每轮都会被重读的静态前缀,如果改它,两条臂的前缀就不同了,既是混淆变量,也会破坏前缀缓存。</p>
+        <p>顺带一个可核对的事实:<code>without_status_bar</code> 是 873 个 token,<code>with_status_bar</code> 是 927 个,差 54。这个差值应该来自状态栏块本身,但仓库里没有保留 token 文本(证据 JSON 被 gitignore 了),所以无法逐字核对——这正好引向第 15 题。</p>
+      </div>
+    </details>
+  </div>
+  <label class="mastered"><input type="checkbox" data-m="12"> 已掌握</label>
+</section>
+
+<!-- Q13 -->
+<section class="q" data-q="13">
+  <div class="q-head">
+    <div class="qnum">13</div>
+    <div class="q-title">
+      <h3>两组的注意力统计几乎一样(sink 0.781 vs 0.782,对角 0.113 vs 0.112),但行为不同(对照组拒答 2/3,实验组 3/3)。这是否说明注意力可视化没用?</h3>
+      <div class="badges"><span class="badge hard">批判性</span><span class="badge mid">统计口径</span></div>
+    </div>
+  </div>
+  <div class="body">
+    <div class="qtext">
+      <p>这是整套练习里最重要的一题。提示:先问"这个统计量能表达我想看的东西吗"。</p>
+    </div>
+    <details class="blk chain">
+      <summary>思考链路<span class="mini">先想 30 秒</span></summary>
+      <div class="blk-body">
+        <ol>
+          <li>状态栏要改变的是"注意力分布的空间结构"还是"全局平均值"?一个全矩阵均值能不能表达前者?</li>
+          <li>两个矩阵长度一样吗?873 与 927 的均值可以直接比吗?</li>
+          <li>每臂多少次生成?2/3 与 3/3 的差别在统计上意味着什么?</li>
+          <li>正文自己是怎么描述这个实验的定位的?</li>
+        </ol>
+      </div>
+    </details>
+    <details class="blk ans">
+      <summary>参考答案</summary>
+      <div class="blk-body">
+        <p><b>不能这样推。</b>三条理由,每条都独立成立:</p>
+        <ol>
+          <li><b>统计口径不匹配。</b>状态栏的作用是让注意力<b>集中到那 54 个 token 上</b>,而不是改变整张矩阵的均值。用全矩阵均值去比,天然把空间结构抹平了——就像用平均温度比较两个城市的气候差异。</li>
+          <li><b>矩阵长度不对等。</b>873 与 927 的均值不是同一个基准上的量;而且长度本身就是一个混淆变量(见第 15 题)。</li>
+          <li><b>样本量太小。</b>每臂 3 次生成,2/3 与 3/3 的差异在统计上几乎没有说服力。</li>
+        </ol>
+        <p>正文自己也把它定位为"小规模的定性演示,给的是直觉",而量化结论来自另一套专门的基准。</p>
+        <p><b>正确的读法:</b>要检验这个假设,应该做<b>区域级统计</b>——状态栏那一段 token 获得了多少注意力质量、思考 token 里"数数"行为的比例有没有下降。也就是说,不是可视化没用,而是<b>选错了统计量</b>。这题的核心结论是:合适的统计口径比可视化本身更重要。</p>
+      </div>
+    </details>
+  </div>
+  <label class="mastered"><input type="checkbox" data-m="13"> 已掌握</label>
+</section>
+
+<!-- Q14 -->
+<section class="q" data-q="14">
+  <div class="q-head">
+    <div class="qnum">14</div>
+    <div class="q-title">
+      <h3><code>classify()</code> 用关键词判断"拒答"和"违规"。这套判据有什么风险?你会怎么改?</h3>
+      <div class="badges"><span class="badge read">代码题</span><span class="badge hard">假阳性/假阴性</span></div>
+    </div>
+  </div>
+  <div class="body">
+    <div class="qtext">
+      <p>提示:分别构造一个"该判拒答却没判"和"不该判拒答却判了"的例子。</p>
+    </div>
+    <details class="blk chain">
+      <summary>思考链路<span class="mini">先想 30 秒</span></summary>
+      <div class="blk-body">
+        <ol>
+          <li>读 <code>classify()</code>(约 213-233 行),把拒答线索词表逐个看一遍:"cannot call"、"can't call"、"won't call"、"not call"、"maximum"、"limit"、"3/3"、"three times"。</li>
+          <li>再读违规判据:<code>"&lt;tool_call&gt;" in lowered and '"name": "phone_call"' in lowered</code>。</li>
+          <li>对每个判据问:模型做一件<b>正确</b>的事时,会不会命中它?</li>
+          <li>再问:模型做一件<b>错误</b>的事时,会不会漏掉它?</li>
+        </ol>
+      </div>
+    </details>
+    <details class="blk ans">
+      <summary>参考答案</summary>
+      <div class="blk-body">
+        <p><b>假阳性(把正确判成拒答):</b>模型只要<b>复述状态栏</b>——"已达上限 3/3""reached the maximum"——就会命中 <code>maximum</code>、<code>limit</code>、<code>3/3</code>、<code>three times</code>。即使它随后照样发起了第 4 次呼叫,只要 <code>&lt;tool_call&gt;</code> 的格式没完全匹配上,就会被归成 REFUSAL。这些词太宽泛,它们描述的是"话题",不是"行为"。</p>
+        <p><b>假阴性(把违规判成无行为):</b>违规判据要求字符串里同时出现 <code>&lt;tool_call&gt;</code> 和 <code>"name": "phone_call"</code>。如果模型用别的 JSON 写法(空格、单引号、函数名大小写不同)、把调用放进代码块、或走原生 tool_calls 字段而不是文本标记,就会被判成 <code>OTHER</code>,而不是 <code>VIOLATION</code>。</p>
+        <p><b>改法:</b></p>
+        <ul>
+          <li>优先用<b>结构化证据</b>:解析 API 返回的 <code>tool_calls</code> 字段、或直接查工具执行记录——"有没有真的拨号"是环境事实,不是文本判断。</li>
+          <li>自由文本分类只作辅助,并且要区分"提到上限"与"因此拒绝执行"。</li>
+          <li>把 <code>OTHER</code> 当作需要人工复核的类别,而不是静默归入"无行为"。一个分类器的 <code>OTHER</code> 比例本身就是它的健康指标。</li>
+        </ul>
+        <div class="note">这个坑和第一章讲的"护栏误拒绝"是同一类问题:只测"该拦的拦住了没有",不测"该放的放行了没有",最终会得到一个看起来很好、实际不可用的判据。</div>
+      </div>
+    </details>
+  </div>
+  <label class="mastered"><input type="checkbox" data-m="14"> 已掌握</label>
+</section>
+
+<!-- Q15 -->
+<section class="q" data-q="15">
+  <div class="q-head">
+    <div class="qnum">15</div>
+    <div class="q-title">
+      <h3>如果要把 2-8 从"定性演示"升级成"可信结论",你会改哪三件事?</h3>
+      <div class="badges"><span class="badge hard">实验设计</span><span class="badge mid">开放题</span></div>
+    </div>
+  </div>
+  <div class="body">
+    <div class="qtext">
+      <p>提示:从四个方向想——样本量、变量隔离、指标预注册、可复现性。</p>
+    </div>
+    <details class="blk chain">
+      <summary>思考链路<span class="mini">先想 30 秒</span></summary>
+      <div class="blk-body">
+        <ol>
+          <li>现在每臂 3 次生成。3 次能区分 2/3 和 3/3 吗?不能。那需要多少?</li>
+          <li>两组唯一的差别是状态栏吗?还是也差了 54 个 token(以及由此带来的注意力稀释)?</li>
+          <li>指标是事先定的还是事后挑的?如果是事后挑,结论的可信度会打折多少?</li>
+          <li>随机种子固定了吗?模型 revision 记录了吗?(后者已经做了。)</li>
+        </ol>
+      </div>
+    </details>
+    <details class="blk ans">
+      <summary>参考答案</summary>
+      <div class="blk-body">
+        <p>三件事(按重要性排序):</p>
+        <ol>
+          <li><b>加大样本。</b>每臂 30 次以上生成,报告比例与置信区间。现在的 2/3 与 3/3 在贝叶斯/频率派视角下都无法区分。</li>
+          <li><b>加第三个臂做变量隔离。</b>只插入一段与任务<b>无关的等长 token 块</b>(比如 54 个填充 token)。如果"加入无关块"也能提升遵从率,那说明起作用的是长度/位置,而不是"提炼过的状态"——这是当前设计无法排除的替代解释。</li>
+          <li><b>预注册判据与区域级指标。</b>事先声明要看什么:状态栏 token 区的注意力质量占比、思考 token 中数数词的出现率、首次决策的 tool_call 结果。而不是跑完再从一堆统计量里挑一个好看的。</li>
+        </ol>
+        <p>可选的第四条:固定一组随机种子并全部报告,而不只报其中一次;同时把 <code>evidence.json</code> 和 token 文本纳入版本控制(或至少附在发布产物里),否则 873 与 927 的 54 token 差值都无法核对。</p>
+        <div class="note">顺带回到第 2 题那个发现:如果证据 JSON 与热力图都被 <code>.gitignore</code> 排除,那么"证据链完整"这件事在全新克隆里就无法验证。这属于可复现性问题,不是实验设计问题,但同样值得修。</div>
+      </div>
+    </details>
+  </div>
+  <label class="mastered"><input type="checkbox" data-m="15"> 已掌握</label>
+</section>
+
+<!-- Q16 -->
+<section class="q" data-q="16">
+  <div class="q-head">
+    <div class="qnum">16</div>
+    <div class="q-title">
+      <h3>正文说"状态栏要用代码维护,别拿大模型去维护"。为什么?如果必须用 LLM 呢?</h3>
+      <div class="badges"><span class="badge read">读书题</span><span class="badge mid">机制</span></div>
+    </div>
+  </div>
+  <div class="body">
+    <div class="qtext">
+      <p>提示:比较"用 LLM 统计长历史"和"用原上下文直接推理"这两件事的计算结构。</p>
+    </div>
+    <details class="blk chain">
+      <summary>思考链路<span class="mini">先想 30 秒</span></summary>
+      <div class="blk-body">
+        <ol>
+          <li>让 LLM 一次性读完整段历史再吐统计,和不用状态栏、直接让它从历史里数——这两件事的难点一样吗?</li>
+          <li>代码做统计和模型做统计,哪个更容易出错?哪个更容易验证?</li>
+          <li>状态栏一旦写错,下游会核对吗?去正文找"模型几乎无条件地相信状态栏"那句。</li>
+        </ol>
+      </div>
+    </details>
+    <details class="blk ans">
+      <summary>参考答案</summary>
+      <div class="blk-body">
+        <p><b>为什么别用 LLM:</b>让它一次性读完整段历史再吐统计结果,等于把"扫描整段上下文"这个原始难题原封不动搬了个家——问题一点没解决,还多了一次出错机会。正文的实测是:20 行正则就能达到标准答案级准确度,而让前沿大模型一次性批量统计,在多数格子上反而出错,把下游准确率拖到比"根本不用状态栏"还低。</p>
+        <p><b>为什么错误代价高:</b>模型几乎<b>无条件相信</b>状态栏——你写"3 次"它就当 3 次,不会去核对,也不会自己重算。所以状态栏写错,错误会原样传进最终答案。它既是有效的来源,也是投毒的入口。</p>
+        <p><b>如果必须用 LLM:</b>逐条抽取、再由代码汇总,绝不让它一次性批量统计。并且把状态栏准确率当成一线生产指标持续监控,而不是上线前测一次。</p>
+        <div class="note">这条经验可以推广成一句判据:<b>能确定性计算的,不要交给概率模型</b>。模型擅长"理解和取舍",不擅长"精确计数与汇总"。</div>
+      </div>
+    </details>
+  </div>
+  <label class="mastered"><input type="checkbox" data-m="16"> 已掌握</label>
+</section>
+
+<!-- Q17 -->
+<section class="q" data-q="17">
+  <div class="q-head">
+    <div class="qnum">17</div>
+    <div class="q-title">
+      <h3>这个实验和 KV Cache 是什么关系?为什么书把 2-2 放在 KV Cache 那一节里?</h3>
+      <div class="badges"><span class="badge read">读书题</span><span class="badge off">零依赖</span></div>
+    </div>
+  </div>
+  <div class="body">
+    <div class="qtext">
+      <p>提示:热力图能直接看到两件事,它们分别对应 KV Cache 的动机和它的边界。</p>
+    </div>
+    <details class="blk chain">
+      <summary>思考链路<span class="mini">先想 30 秒</span></summary>
+      <div class="blk-body">
+        <ol>
+          <li>回到正文 481 行:每生成一个新 token,它的 Query 要和什么做匹配?要对什么加权求和?</li>
+          <li>如果每次都重算,代价随长度怎么变?缓存的是哪两个东西?</li>
+          <li>因果三角说明"未来 token 不参与当前计算",这对"前缀可复用"意味着什么?</li>
+          <li>正文 441 行举了一个"在开头加一行时间戳"的例子,它破坏了什么?</li>
+        </ol>
+      </div>
+    </details>
+    <details class="blk ans">
+      <summary>参考答案</summary>
+      <div class="blk-body">
+        <p><b>热力图把 KV Cache 的动机摆出来了:</b>每生成一个新 token,它的 Query 都要与前面<b>所有</b> token 的 Key 做匹配,再对所有 Value 加权求和。若每次重算,代价随上下文长度增长;所以要把已经算过的 K 与 V 缓存起来复用。</p>
+        <p><b>因果三角还说明了边界:</b>未来 token 不参与当前计算,所以一段<b>前缀只要不变</b>,它的 K/V 就可以一直复用。反过来,任何破坏前缀的改动都会让该位置之后的缓存失效——正文 441 行的例子(在开头插入一行时间戳)正是如此:一个看似无害的改动,让整条推理链路慢一个量级。</p>
+        <p><b>由此也能解释 2-8 的设计:</b>状态栏放在<b>末尾</b>,既不修改静态前缀、不破坏缓存,又能获得靠近生成位置的高注意力权重。位置的选择同时服务于注意力和缓存两个目标。</p>
+      </div>
+    </details>
+  </div>
+  <label class="mastered"><input type="checkbox" data-m="17"> 已掌握</label>
+</section>
+
+<!-- ============================================================ -->
+<h2 id="appendix"><span class="part-tag e">附录</span> 可核对的实测数据与工具</h2>
+
+<h3 style="font-size:16px;margin:22px 0 6px">附录 A · 从已提交张量算出的真实数值</h3>
+<p class="lede" style="margin-bottom:10px">下表由 <code>runs/</code> 下的 <code>.npz</code> 直接计算得到(纯标准库,无 numpy)。第 8、9、10、13 题的数字都来自这里,你可以用附录 B 的脚本复现。</p>
+
+<table style="width:100%;border-collapse:collapse;font-size:13px;background:#fff;border-radius:12px;overflow:hidden;box-shadow:0 0 0 1px var(--line)">
+  <thead>
+    <tr style="background:#f2f4f9">
+      <th style="padding:9px 11px;text-align:left;font-size:12.2px;color:#4b5468">矩阵</th>
+      <th style="padding:9px 11px;text-align:left;font-size:12.2px;color:#4b5468">n</th>
+      <th style="padding:9px 11px;text-align:left;font-size:12.2px;color:#4b5468">sink(含第 0 行)</th>
+      <th style="padding:9px 11px;text-align:left;font-size:12.2px;color:#4b5468">sink(排除第 0 行)</th>
+      <th style="padding:9px 11px;text-align:left;font-size:12.2px;color:#4b5468">对角均值</th>
+      <th style="padding:9px 11px;text-align:left;font-size:12.2px;color:#4b5468">上三角最大值</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr><td style="padding:8px 11px;border-bottom:1px solid #eef1f6"><code>simple_layer_0</code></td><td style="padding:8px 11px;border-bottom:1px solid #eef1f6">9</td><td style="padding:8px 11px;border-bottom:1px solid #eef1f6">0.147</td><td style="padding:8px 11px;border-bottom:1px solid #eef1f6">0.040</td><td style="padding:8px 11px;border-bottom:1px solid #eef1f6">0.586</td><td style="padding:8px 11px;border-bottom:1px solid #eef1f6">0.0</td></tr>
+    <tr><td style="padding:8px 11px;border-bottom:1px solid #eef1f6"><code>simple_layer_13</code></td><td style="padding:8px 11px;border-bottom:1px solid #eef1f6">9</td><td style="padding:8px 11px;border-bottom:1px solid #eef1f6">0.739</td><td style="padding:8px 11px;border-bottom:1px solid #eef1f6">0.706</td><td style="padding:8px 11px;border-bottom:1px solid #eef1f6">0.197</td><td style="padding:8px 11px;border-bottom:1px solid #eef1f6">0.0</td></tr>
+    <tr><td style="padding:8px 11px;border-bottom:1px solid #eef1f6"><code>simple_layer_27</code></td><td style="padding:8px 11px;border-bottom:1px solid #eef1f6">9</td><td style="padding:8px 11px;border-bottom:1px solid #eef1f6">0.832</td><td style="padding:8px 11px;border-bottom:1px solid #eef1f6">0.811</td><td style="padding:8px 11px;border-bottom:1px solid #eef1f6">0.229</td><td style="padding:8px 11px;border-bottom:1px solid #eef1f6">0.0</td></tr>
+    <tr><td style="padding:8px 11px;border-bottom:1px solid #eef1f6"><code>generated_layer_0</code></td><td style="padding:8px 11px;border-bottom:1px solid #eef1f6">580</td><td style="padding:8px 11px;border-bottom:1px solid #eef1f6">0.004</td><td style="padding:8px 11px;border-bottom:1px solid #eef1f6">0.002</td><td style="padding:8px 11px;border-bottom:1px solid #eef1f6">0.339</td><td style="padding:8px 11px;border-bottom:1px solid #eef1f6">0.0</td></tr>
+    <tr><td style="padding:8px 11px;border-bottom:1px solid #eef1f6"><code>generated_layer_13</code></td><td style="padding:8px 11px;border-bottom:1px solid #eef1f6">580</td><td style="padding:8px 11px;border-bottom:1px solid #eef1f6">0.280</td><td style="padding:8px 11px;border-bottom:1px solid #eef1f6">0.279</td><td style="padding:8px 11px;border-bottom:1px solid #eef1f6">0.083</td><td style="padding:8px 11px;border-bottom:1px solid #eef1f6">0.0</td></tr>
+    <tr><td style="padding:8px 11px;border-bottom:1px solid #eef1f6"><code>generated_layer_27</code></td><td style="padding:8px 11px;border-bottom:1px solid #eef1f6">580</td><td style="padding:8px 11px;border-bottom:1px solid #eef1f6">0.732</td><td style="padding:8px 11px;border-bottom:1px solid #eef1f6">0.731</td><td style="padding:8px 11px;border-bottom:1px solid #eef1f6">0.132</td><td style="padding:8px 11px;border-bottom:1px solid #eef1f6">0.0</td></tr>
+    <tr><td style="padding:8px 11px;border-bottom:1px solid #eef1f6"><code>without_status_bar</code></td><td style="padding:8px 11px;border-bottom:1px solid #eef1f6">873</td><td style="padding:8px 11px;border-bottom:1px solid #eef1f6">0.781</td><td style="padding:8px 11px;border-bottom:1px solid #eef1f6">0.781</td><td style="padding:8px 11px;border-bottom:1px solid #eef1f6">0.113</td><td style="padding:8px 11px;border-bottom:1px solid #eef1f6">0.0</td></tr>
+    <tr><td style="padding:8px 11px"><code>with_status_bar</code></td><td style="padding:8px 11px">927</td><td style="padding:8px 11px">0.782</td><td style="padding:8px 11px">0.782</td><td style="padding:8px 11px">0.112</td><td style="padding:8px 11px">0.0</td></tr>
+  </tbody>
+</table>
+<p class="src" style="font-size:12.8px;color:#7b8398;margin-top:8px">所有矩阵的行和都落在 0.9992–1.0008 之间(softmax 归一化的直接证据),第 0 行对角恒为 1.000。</p>
+
+<h3 id="appendix-code" style="font-size:16px;margin:26px 0 6px">附录 B · 纯标准库读取 npz(已在本机跑通)</h3>
+<p class="lede" style="margin-bottom:10px">把下面这段存成 <code>read_npz.py</code> 放在实验目录下即可运行。它不依赖 numpy / torch。</p>
+<pre><code>import ast, struct, sys, zipfile
+
+def load_npy(zf, name):
+    with zf.open(name) as f:
+        assert f.read(6) == b"\x93NUMPY"
+        major = f.read(1)[0]
+        f.read(1)
+        if major == 1:
+            hlen = struct.unpack("&lt;H", f.read(2))[0]
+        else:
+            hlen = struct.unpack("&lt;I", f.read(4))[0]
+        header = ast.literal_eval(f.read(hlen).decode("latin1").strip())
+        data = f.read()
+    rows, cols = header["shape"]
+    code = "f" if header["descr"].endswith("4") else "d"
+    n = rows * cols
+    flat = struct.unpack("&lt;%d%s" % (n, code), data[: struct.calcsize("&lt;%d%s" % (n, code))])
+    return [flat[i * cols : (i + 1) * cols] for i in range(rows)]
+
+def describe(path):
+    with zipfile.ZipFile(path) as zf:
+        for name in sorted(zf.namelist()):
+            m = load_npy(zf, name)
+            n = len(m)
+            sink = sum(r[0] for r in m) / n
+            diag = sum(m[i][i] for i in range(n)) / n
+            upper = max((m[i][j] for i in range(n) for j in range(i + 1, n)), default=0.0)
+            print(f"{name:24} n={n:4} sink={sink:.3f} diag={diag:.3f} upper_max={upper:.1e}")
+
+if __name__ == "__main__":
+    describe(sys.argv[1])</code></pre>
+<p style="font-size:13.4px;color:#4b5468">用法:<code>python read_npz.py runs/exp2-2-qwen3-0.6b-20260730-v3/attention_matrices.npz</code></p>
+
+<footer>
+  <p><b>进度</b>保存在浏览器 localStorage(键 <code>attn-exercises-v1</code>)。点「重置」清空,点「全部展开」一次性展开所有思考链路与答案(适合复盘)。</p>
+  <p>本文件是学习辅助材料,不属于实验验收证据;它不会被发布到项目网站(<code>scripts/clean_site_files.py</code> 的发布白名单里没有 <code>.html</code>)。</p>
+  <p>配套源码:<a href="agent.py">agent.py</a> · <a href="attention_cli.py">attention_cli.py</a> · <a href="run_attention_experiment.py">run_attention_experiment.py</a> · <a href="run_status_bar_experiment.py">run_status_bar_experiment.py</a> · <a href="visualization.py">visualization.py</a> · <a href="README.md">README.md</a></p>
+</footer>
+
+</div>
+
+<script>
+(function () {
+  "use strict";
+  var KEY = "attn-exercises-v1";
+  var boxes = Array.prototype.slice.call(document.querySelectorAll('input[data-m]'));
+  var total = boxes.length;
+
+  function load() {
+    try { return JSON.parse(localStorage.getItem(KEY) || "{}"); } catch (e) { return {}; }
+  }
+  function save(s) { try { localStorage.setItem(KEY, JSON.stringify(s)); } catch (e) {} }
+
+  function refresh() {
+    var done = boxes.filter(function (b) { return b.checked; }).length;
+    document.getElementById("bar").style.width = (total ? done / total * 100 : 0) + "%";
+    document.getElementById("cnt").textContent = done + " / " + total;
+    boxes.forEach(function (b) {
+      var card = b.closest(".q");
+      if (card) card.classList.toggle("done", b.checked);
+    });
+  }
+
+  var state = load();
+  boxes.forEach(function (b) {
+    b.checked = !!state[b.dataset.m];
+    b.addEventListener("change", function () {
+      state[b.dataset.m] = b.checked;
+      save(state);
+      refresh();
+    });
+  });
+  refresh();
+
+  document.getElementById("reset").addEventListener("click", function () {
+    if (!window.confirm("清空所有练习进度?")) return;
+    boxes.forEach(function (b) { b.checked = false; });
+    state = {};
+    save(state);
+    refresh();
+  });
+
+  var expandBtn = document.getElementById("expand");
+  expandBtn.addEventListener("click", function () {
+    var blocks = Array.prototype.slice.call(document.querySelectorAll("details.blk"));
+    var allOpen = blocks.every(function (d) { return d.open; });
+    blocks.forEach(function (d) { d.open = !allOpen; });
+    expandBtn.textContent = allOpen ? "全部展开" : "全部收起";
+  });
+
+  // 代码块复制按钮
+  document.querySelectorAll("pre").forEach(function (pre) {
+    var btn = document.createElement("button");
+    btn.className = "copy";
+    btn.type = "button";
+    btn.textContent = "复制";
+    btn.addEventListener("click", function () {
+      var code = pre.querySelector("code");
+      var text = code ? code.textContent : pre.textContent;
+      var done = function () {
+        btn.textContent = "已复制";
+        setTimeout(function () { btn.textContent = "复制"; }, 1200);
+      };
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(text).then(done, function () {});
+      } else {
+        var ta = document.createElement("textarea");
+        ta.value = text;
+        document.body.appendChild(ta);
+        ta.select();
+        try { document.execCommand("copy"); done(); } catch (e) {}
+        document.body.removeChild(ta);
+      }
+    });
+    pre.appendChild(btn);
+  });
+})();
+</script>
+</body>
+</html>

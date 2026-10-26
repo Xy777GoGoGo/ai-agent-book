@@ -1,0 +1,878 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>实验 1-1 练习册 · context</title>
+<style>
+  :root{
+    --ink:#1f2430; --ink-2:#4a5263; --ink-3:#7a8398;
+    --line:#e3e7ef; --bg:#f7f8fb; --card:#fff;
+    --accent:#4f46e5; --accent-soft:#eef0ff;
+    --ok:#0f9d58; --ok-soft:#e9f7ef;
+    --warn:#b45309; --warn-soft:#fff5e6;
+    --live:#0e7490; --live-soft:#e6f6fa;
+    --code-bg:#1e2230; --code-ink:#e6e9f2;
+    --radius:14px;
+  }
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{
+    margin:0; background:var(--bg); color:var(--ink);
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei","Noto Sans SC",sans-serif;
+    line-height:1.75; font-size:15.5px;
+  }
+  a{color:var(--accent); text-underline-offset:2px}
+  code,kbd,pre{font-family:"JetBrains Mono",SFMono-Regular,Consolas,"Liberation Mono",monospace}
+  :not(pre)>code{
+    background:#eef1f7; padding:.12em .38em; border-radius:5px;
+    font-size:.88em; color:#33405c; white-space:nowrap;
+  }
+  .wrap{max-width:1020px; margin:0 auto; padding:0 22px 90px}
+
+  /* ---------- sticky progress ---------- */
+  .topbar{
+    position:sticky; top:0; z-index:20;
+    background:rgba(247,248,251,.92); backdrop-filter:blur(8px);
+    border-bottom:1px solid var(--line);
+  }
+  .topbar-inner{max-width:1020px; margin:0 auto; padding:11px 22px; display:flex; align-items:center; gap:16px}
+  .topbar b{font-size:14px; letter-spacing:.02em}
+  .bar{flex:1; height:8px; background:#e6e9f2; border-radius:99px; overflow:hidden}
+  .bar>i{display:block; height:100%; width:0; background:linear-gradient(90deg,#6366f1,#8b5cf6); transition:width .25s ease}
+  .count{font-size:13px; color:var(--ink-2); font-variant-numeric:tabular-nums; min-width:52px; text-align:right}
+  .reset{border:1px solid var(--line); background:#fff; color:var(--ink-2); border-radius:8px; padding:4px 10px; font-size:12px; cursor:pointer}
+  .reset:hover{border-color:#c9cfdd; color:var(--ink)}
+
+  /* ---------- header ---------- */
+  header.hero{padding:44px 0 8px}
+  .eyebrow{font-size:12.5px; letter-spacing:.14em; text-transform:uppercase; color:var(--accent); font-weight:600}
+  h1{font-size:31px; line-height:1.3; margin:10px 0 6px; letter-spacing:-.01em}
+  .sub{color:var(--ink-2); margin:0 0 22px}
+  .formula{
+    display:inline-flex; gap:10px; align-items:center; flex-wrap:wrap;
+    background:var(--accent-soft); border:1px solid #dfe2ff; color:#333c78;
+    padding:9px 15px; border-radius:99px; font-size:14px; font-weight:600;
+  }
+  .formula span{opacity:.45}
+
+  /* ---------- callouts ---------- */
+  .callout{border-radius:var(--radius); padding:16px 18px; margin:18px 0; border:1px solid; font-size:14.3px}
+  .callout h4{margin:0 0 6px; font-size:14px; letter-spacing:.02em}
+  .callout ul{margin:6px 0 0; padding-left:20px}
+  .callout li{margin:4px 0}
+  .callout.warn{background:var(--warn-soft); border-color:#f3ddb5; color:#6b3f0a}
+  .callout.info{background:var(--live-soft); border-color:#c9e8f1; color:#0b4a5b}
+
+  /* ---------- sections ---------- */
+  h2{font-size:21px; margin:46px 0 6px; letter-spacing:-.01em; display:flex; align-items:center; gap:10px}
+  h2 .tier{
+    font-size:11.5px; font-weight:700; letter-spacing:.1em; text-transform:uppercase;
+    background:var(--accent); color:#fff; padding:3px 9px; border-radius:6px;
+  }
+  h2 .tier.t2{background:#0891b2} h2 .tier.t3{background:#7c3aed}
+  .lede{color:var(--ink-2); margin:0 0 20px; font-size:14.6px}
+
+  /* ---------- exercise card ---------- */
+  .ex{
+    background:var(--card); border:1px solid var(--line); border-radius:var(--radius);
+    padding:18px 20px; margin:14px 0; box-shadow:0 1px 2px rgba(16,24,40,.04);
+    transition:border-color .15s, box-shadow .15s;
+  }
+  .ex:hover{border-color:#d3d9e6; box-shadow:0 3px 12px rgba(16,24,40,.06)}
+  .ex.done{border-color:#bfe6cf; background:linear-gradient(#fff,#fbfefc)}
+  .ex-head{display:flex; gap:12px; align-items:flex-start}
+  .ex-head input[type=checkbox]{
+    appearance:none; width:20px; height:20px; margin:3px 0 0; flex:none;
+    border:2px solid #c9cfdd; border-radius:6px; background:#fff; cursor:pointer; position:relative;
+  }
+  .ex-head input[type=checkbox]:checked{background:var(--ok); border-color:var(--ok)}
+  .ex-head input[type=checkbox]:checked::after{
+    content:""; position:absolute; left:5px; top:1px; width:5px; height:10px;
+    border:solid #fff; border-width:0 2.5px 2.5px 0; transform:rotate(45deg);
+  }
+  .ex-title{flex:1; min-width:0}
+  .ex-title h3{margin:0; font-size:16.5px; display:flex; align-items:center; gap:8px; flex-wrap:wrap; cursor:pointer}
+  .num{color:var(--ink-3); font-variant-numeric:tabular-nums; font-weight:600}
+  .badge{font-size:11px; font-weight:700; padding:2px 7px; border-radius:5px; letter-spacing:.03em}
+  .badge.off{background:var(--ok-soft); color:#0b6b3d}
+  .badge.live{background:var(--live-soft); color:#0b5c70}
+  .dots{color:var(--ink-3); font-size:12px; letter-spacing:1px}
+
+  .ex-body{margin:10px 0 0 32px}
+  .row{display:grid; grid-template-columns:78px 1fr; gap:10px; margin:9px 0; font-size:14.4px}
+  .row .k{color:var(--ink-3); font-size:12.5px; font-weight:700; letter-spacing:.05em; padding-top:2px}
+  .row .v{min-width:0}
+  .row .v p{margin:0 0 6px}
+  .row .v ul{margin:0; padding-left:19px}
+  .row .v li{margin:3px 0}
+  .src{font-size:13px; color:var(--ink-2)}
+  .src a{text-decoration:none; border-bottom:1px dotted #b9c0d2}
+  .src a:hover{border-bottom-color:var(--accent)}
+
+  pre{
+    background:var(--code-bg); color:var(--code-ink); border-radius:11px;
+    padding:14px 16px; overflow:auto; font-size:12.6px; line-height:1.62; margin:10px 0 4px;
+    position:relative;
+  }
+  pre code{background:none; padding:0; color:inherit; white-space:pre; font-size:inherit}
+  .copy{
+    position:absolute; top:8px; right:8px; border:1px solid #3b4257; background:#262b3c;
+    color:#aeb6cc; font-size:11px; padding:3px 8px; border-radius:6px; cursor:pointer; opacity:0;
+    transition:opacity .15s;
+  }
+  pre:hover .copy{opacity:1}
+  .copy:hover{color:#fff; border-color:#5a6484}
+
+  details.hint{margin:10px 0 0; border-left:3px solid #dfe3ec; padding-left:12px}
+  details.hint summary{cursor:pointer; font-size:13px; color:var(--accent); font-weight:600; list-style:none}
+  details.hint summary::-webkit-details-marker{display:none}
+  details.hint summary::before{content:"▸ "; font-size:11px}
+  details.hint[open] summary::before{content:"▾ "}
+  details.hint .hint-body{font-size:14px; color:var(--ink-2); margin-top:6px}
+
+  /* ---------- pipeline ---------- */
+  .pipe{background:#fff; border:1px solid var(--line); border-radius:var(--radius); padding:20px 22px; margin:16px 0}
+  .step{display:grid; grid-template-columns:28px 1fr auto; gap:12px; align-items:center; padding:9px 0; border-bottom:1px dashed #edf0f6}
+  .step:last-child{border-bottom:0}
+  .step .idx{width:26px; height:26px; border-radius:50%; background:#eef1f7; color:var(--ink-2); font-size:12px; font-weight:700; display:grid; place-items:center}
+  .step code{background:#f4f6fa; color:#2c3550; font-size:12.4px; padding:2px 7px; border-radius:5px; white-space:normal}
+  .tag{font-size:11.5px; font-weight:700; padding:2px 8px; border-radius:5px; background:#fff0f0; color:#a8322f; border:1px solid #f6d5d4; white-space:nowrap}
+  .tag.none{background:#f4f6fa; color:#98a0b3; border-color:#e6e9f2}
+
+  /* ---------- tables ---------- */
+  .tbl{width:100%; border-collapse:collapse; font-size:13.8px; background:#fff; border-radius:var(--radius); overflow:hidden; box-shadow:0 0 0 1px var(--line)}
+  .tbl th,.tbl td{padding:10px 12px; text-align:left; border-bottom:1px solid var(--line); vertical-align:top}
+  .tbl th{background:#f2f4f9; font-size:12.5px; letter-spacing:.03em; color:var(--ink-2)}
+  .tbl tr:last-child td{border-bottom:0}
+  .tbl code{white-space:nowrap; font-size:12.4px}
+
+  /* ---------- why-qa ---------- */
+  .qa{background:#fff; border:1px solid var(--line); border-radius:var(--radius); margin:10px 0; overflow:hidden}
+  .qa summary{cursor:pointer; padding:13px 18px; font-size:14.4px; font-weight:600; list-style:none; display:flex; gap:10px}
+  .qa summary::-webkit-details-marker{display:none}
+  .qa summary::before{content:"Q"; color:var(--accent); font-weight:800; font-size:12px; background:var(--accent-soft); width:20px; height:20px; border-radius:5px; display:grid; place-items:center; flex:none; margin-top:2px}
+  .qa[open] summary{border-bottom:1px solid var(--line)}
+  .qa .a{padding:12px 18px 15px 48px; font-size:14.2px; color:var(--ink-2)}
+  .qa .a p{margin:0 0 8px} .qa .a p:last-child{margin:0}
+
+  footer{margin-top:56px; padding-top:18px; border-top:1px solid var(--line); color:var(--ink-3); font-size:13px}
+  @media (max-width:640px){
+    .row{grid-template-columns:1fr; gap:2px}
+    .row .k{padding-top:0}
+    .ex-body{margin-left:0}
+    h1{font-size:25px}
+    .step{grid-template-columns:26px 1fr; }
+    .tag{grid-column:2; justify-self:start; margin-top:4px}
+  }
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="topbar-inner">
+    <b>实验 1-1 练习册</b>
+    <div class="bar"><i id="bar"></i></div>
+    <span class="count" id="count">0 / 12</span>
+    <button class="reset" id="reset">重置</button>
+  </div>
+</div>
+
+<div class="wrap">
+
+<header class="hero">
+  <div class="eyebrow">chapter1 / context · Experiment 1-1</div>
+  <h1>上下文的关键作用:把消融实验读透</h1>
+  <p class="sub">12 道练习,分三阶。前两阶完全离线、零 API 调用;第三阶只花 1 次请求。<br>机制理解优先,不要求你改实验代码。</p>
+  <div class="formula">Agent <span>=</span> LLM <span>+</span> 上下文 <span>+</span> 工具</div>
+</header>
+
+<div class="callout warn">
+  <h4>开工前先确认三件事(和你机器上的实际情况有关)</h4>
+  <ul>
+    <li><b>不要跑五臂 campaign。</b>你的 Moonshot 账号是 <code>3 RPM</code>,而 <code>run_experiment_1_1.py</code> 五个臂背靠背连发,<code>full</code> 一臂就吃掉 3 轮,后面四臂必然 429。你工作区里那份 <code>validation/latest.json</code> 就是这么坏的(只跑通 1 个臂)。</li>
+    <li><b>用 <code>kimi</code> 时务必加 <code>--provider kimi</code>。</b><code>main.py</code> 的默认 provider 是 <code>doubao</code>,会去找 <code>ARK_API_KEY</code>。</li>
+    <li><b><code>--extra ch1</code> 在本机装不了。</b>锁文件把 <code>numpy</code> 钉在 1.26.4(所有非 Linux 平台),而它没有 Python 3.13 的 wheel,uv 会退化成源码构建、再因缺 C 编译器失败。你只需要 <code>dev</code> extra(已装好),<code>matplotlib</code> 在 <code>main.py</code> 里是可选懒加载,不影响练习。</li>
+  </ul>
+</div>
+
+<h2>先看这张图:四处消融点各在哪</h2>
+<p class="lede">这张图是全套练习的地基。四个消融<b>不是</b>散落在四个函数里,而是插在同一条 ReAct 请求路径的四个不同位置。先记住位置,再读代码,你会快很多。</p>
+
+<div class="pipe">
+  <div class="step"><div class="idx">1</div><div><code>messages = _prepare_messages_for_api()</code> — 决定这一轮发哪些历史</div><div class="tag">no_history</div></div>
+  <div class="step"><div class="idx">2</div><div><code>request = {model, messages, temperature, tools?, tool_choice?}</code> — 决定请求带不带工具定义</div><div class="tag">no_tool_calls</div></div>
+  <div class="step"><div class="idx">3</div><div><code>response = client.chat.completions.create(**request)</code> — 真正出网的一步</div><div class="tag none">—</div></div>
+  <div class="step"><div class="idx">4</div><div><code>assistant_msg = _prepare_assistant_message(response)</code> — 决定思考内容要不要写回历史</div><div class="tag">no_reasoning</div></div>
+  <div class="step"><div class="idx">5</div><div><code>result = _execute_tool(name, args)</code> — 本地执行工具</div><div class="tag none">—</div></div>
+  <div class="step"><div class="idx">6</div><div><code>tool_msg = {role:"tool", tool_call_id:…, content: result | "[hidden]"}</code></div><div class="tag">no_tool_results</div></div>
+  <div class="step"><div class="idx">7</div><div>没有 <code>tool_calls</code> 且有文本 → 结束,抽取 <code>FINAL ANSWER:</code></div><div class="tag none">—</div></div>
+</div>
+
+<h2>五模式对照表</h2>
+<p class="lede">做练习时随时回来查。最后一列是 <code>evaluate_context_contract</code> 里对应的必查项——它检查的是<b>实际发出的请求</b>,不是你传给 CLI 的模式字符串。</p>
+
+<table class="tbl">
+  <thead><tr><th>模式</th><th>抽掉什么</th><th>作用位置</th><th>契约必查项</th></tr></thead>
+  <tbody>
+    <tr><td><code>full</code></td><td>无(基线)</td><td>—</td><td><code>tools_present_every_turn</code><br><code>history_present_after_first_turn</code><br><code>reasoning_retained_after_first_turn</code></td></tr>
+    <tr><td><code>no_history</code></td><td>跨轮历史</td><td><code>agent.py:644</code></td><td><code>only_static_prefix_and_user_every_turn</code><br><code>tools_still_present</code></td></tr>
+    <tr><td><code>no_reasoning</code></td><td>思考内容</td><td><code>agent.py:532</code></td><td><code>provider_generated_reasoning</code><br><code>reasoning_removed_from_history</code><br><code>tool_and_result_history_retained</code></td></tr>
+    <tr><td><code>no_tool_calls</code></td><td>工具定义</td><td><code>agent.py:760</code></td><td><code>tools_absent_every_turn</code></td></tr>
+    <tr><td><code>no_tool_results</code></td><td>工具结果内容</td><td><code>agent.py:861</code></td><td><code>tool_calls_retained</code><br><code>tool_results_hidden</code></td></tr>
+  </tbody>
+</table>
+<p class="src" style="margin-top:8px">所有模式还都要求 <code>has_provider_response_ids</code>——每一轮都要有真实的 provider 响应 ID。这一条是 mock 永远伪造不出来的,也是 <code>direct_real_api_evidence</code> 的判据。</p>
+
+<!-- ============================================================ -->
+<h2><span class="tier">Tier 1</span> 建立准确的机制模型</h2>
+<p class="lede">纯离线。不写代码,只读代码 + 回答。做完这一阶,你应该能在白板上画出上面那张请求路径图,并说出每个消融点改的是哪一层。</p>
+
+<!-- 1 -->
+<section class="ex" data-ex="1">
+  <div class="ex-head">
+    <input type="checkbox" id="c1" aria-label="标记练习 1 完成">
+    <div class="ex-title">
+      <h3><label for="c1"><span class="num">01</span> 追踪一条完整轨迹</label> <span class="badge off">离线</span> <span class="dots">●○○</span></h3>
+    </div>
+  </div>
+  <div class="ex-body">
+    <div class="row"><div class="k">目标</div><div class="v"><p>把「上下文」这个词,变成你能逐字读出来的消息数组。</p></div></div>
+    <div class="row"><div class="k">你要做的事</div><div class="v">
+      <p>打开 <code>task_result_full.json</code>(或任何一次 <code>main.py --mode single</code> 的输出),看 <code>api_turns</code>。画一张表,每一轮填三列:</p>
+      <ul>
+        <li><b>轮次</b></li>
+        <li><b>role 序列</b>(<code>request.messages[*].role</code>)</li>
+        <li><b>这一轮多出了什么</b>(assistant 带了 <code>reasoning_content</code> 还是 <code>tool_calls</code>?tool 消息里是什么?)</li>
+      </ul>
+    </div></div>
+    <div class="row"><div class="k">验证标准</div><div class="v"><ul>
+      <li>第 1 轮 role 序列是 <code>system, user</code></li>
+      <li>第 2 轮是 <code>system, user, assistant, tool</code>,而且 <b>tool 消息可能有多条</b>(并行工具调用)</li>
+      <li>第 2 轮的 assistant 消息里能看到 <code>reasoning_content</code></li>
+      <li>全流程轮数远小于 <code>max_iterations</code>——正常 3 轮就终止</li>
+    </ul></div></div>
+    <div class="row"><div class="k">看这里</div><div class="v src">
+      <a href="agent.py#L644">agent.py:644</a> <code>_prepare_messages_for_api</code> ·
+      <a href="agent.py#L685">agent.py:685</a> <code>execute_task</code> 主循环 ·
+      <a href="agent.py#L780">agent.py:780</a> <code>api_turns</code> 的写入点
+    </div></div>
+    <details class="hint"><summary>提示</summary><div class="hint-body">
+      注意一个容易漏的点:消息列表是<b>累积</b>的,每一轮都把完整轨迹重新发一遍。所以第 2 轮的请求里已经包含了第 1 轮的全部内容。这就是为什么删掉历史(no_history)会让模型「每轮重新开始」。
+    </div></details>
+  </div>
+</section>
+
+<!-- 2 -->
+<section class="ex" data-ex="2">
+  <div class="ex-head">
+    <input type="checkbox" id="c2" aria-label="标记练习 2 完成">
+    <div class="ex-title">
+      <h3><label for="c2"><span class="num">02</span> 预测四处消融点(先写后看)</label> <span class="badge off">离线</span> <span class="dots">●●○</span></h3>
+    </div>
+  </div>
+  <div class="ex-body">
+    <div class="row"><div class="k">目标</div><div class="v"><p>建立「消融 = 在请求路径上剪一刀」的直觉,而不是死记四个行号。</p></div></div>
+    <div class="row"><div class="k">你要做的事</div><div class="v">
+      <p><b>先不要看答案。</b>在纸上填四行:模式 → 你认为它改的是哪一层 → 你猜的实现位置。</p>
+      <p>三层可选:<b>请求参数</b> / <b>历史消息列表</b> / <b>写回历史的 assistant 内容</b> / <b>tool 消息内容</b>。</p>
+    </div></div>
+    <div class="row"><div class="k">验证标准</div><div class="v"><p>对照 <a href="agent.py#L760">agent.py:760</a>、<a href="agent.py#L861">agent.py:861</a>、<a href="agent.py#L532">agent.py:532</a>、<a href="agent.py#L644">agent.py:644</a>,四项全中。</p></div></div>
+    <div class="row"><div class="k">判断的关键</div><div class="v"><p>问自己一句:<b>这一刀是剪在「发出去的东西」上,还是剪在「存回来的东西」上?</b> <code>no_tool_calls</code> 剪的是发出去的请求参数;<code>no_reasoning</code> 剪的是存回来的 assistant 消息。这两个方向完全不同,但都表现为「上下文变少了」。</p></div></div>
+    <details class="hint"><summary>参考答案(先别展开)</summary><div class="hint-body">
+      <code>no_tool_calls</code> → 请求参数(<code>tools</code>/<code>tool_choice</code> 设为 None) ·
+      <code>no_tool_results</code> → tool 消息内容(替换为固定占位符) ·
+      <code>no_reasoning</code> → 写回历史的 assistant 消息(删掉 <code>reasoning_content</code> 键) ·
+      <code>no_history</code> → 历史消息列表(只留 system + 最后一条 user)
+    </div></details>
+  </div>
+</section>
+
+<!-- 3 -->
+<section class="ex" data-ex="3">
+  <div class="ex-head">
+    <input type="checkbox" id="c3" aria-label="标记练习 3 完成">
+    <div class="ex-title">
+      <h3><label for="c3"><span class="num">03</span> 识破 <code>_build_context</code> 这个诱饵</label> <span class="badge off">离线</span> <span class="dots">●●○</span></h3>
+    </div>
+  </div>
+  <div class="ex-body">
+    <div class="row"><div class="k">目标</div><div class="v"><p>学会区分「看起来在干活」和「真的在请求路径上」。这是读任何 Agent 代码都要用的判断力。</p></div></div>
+    <div class="row"><div class="k">你要做的事</div><div class="v"><p>读 <a href="agent.py#L554">agent.py:554</a> 的 <code>_build_context()</code>。它内部全是 <code>if self.context_mode != ...</code>,几乎就是一个消融实现。然后回答:</p>
+      <ul>
+        <li>它被谁调用?</li>
+        <li>在 <code>no_history</code> 模式下它返回什么?</li>
+        <li>为什么这个返回值会让你误以为「改它就能改变请求」?</li>
+      </ul>
+    </div></div>
+    <div class="row"><div class="k">验证标准</div><div class="v"><ul>
+      <li>能指出它的文档串自己写了「NOT part of the request path」</li>
+      <li>能说出 <code>no_history</code> 下它返回空字符串 <code>""</code>——看起来像「成功抽掉了上下文」</li>
+      <li>能给出真正的请求路径入口:<code>_prepare_messages_for_api</code></li>
+    </ul></div></div>
+    <div class="row"><div class="k">为什么这是个好诱饵</div><div class="v"><p>因为空字符串在语义上确实等于「没有上下文」。如果你只看返回值,它和真的消融无法区分;只有顺着调用链看,才知道它不参与请求组装。这正是代码阅读里最常见的误判来源:<b>用「行为像」代替「确实在链路上」</b>。</p></div></div>
+  </div>
+</section>
+
+<!-- 4 -->
+<section class="ex" data-ex="4">
+  <div class="ex-head">
+    <input type="checkbox" id="c4" aria-label="标记练习 4 完成">
+    <div class="ex-title">
+      <h3><label for="c4"><span class="num">04</span> 协议 vs 信息:<code>no_tool_results</code> 为什么不删消息</label> <span class="badge off">离线</span> <span class="dots">●●●</span></h3>
+    </div>
+  </div>
+  <div class="ex-body">
+    <div class="row"><div class="k">目标</div><div class="v"><p>理解「消融信息」和「破坏协议」的区别——这是设计任何消融实验的基本功。</p></div></div>
+    <div class="row"><div class="k">你要做的事</div><div class="v"><p>读 <a href="agent.py#L861">agent.py:861</a>。你会看到:隐藏结果时,代码<b>仍然</b>发了一条 <code>role:"tool"</code> 且带正确 <code>tool_call_id</code> 的消息,只是把 <code>content</code> 换成了 <code>[Tool result hidden due to context mode]</code>。回答:</p>
+      <ul>
+        <li>为什么不干脆把整条 tool 消息删掉?</li>
+        <li>如果删掉,模型会看到什么「不合法」的历史?</li>
+        <li>为什么契约要<b>同时</b>检查 <code>tool_calls_retained</code> 和 <code>tool_results_hidden</code>?</li>
+      </ul>
+    </div></div>
+    <div class="row"><div class="k">验证标准</div><div class="v"><ul>
+      <li>能说出:assistant 消息里有 <code>tool_calls</code>,后面就必须跟对应的 tool 消息,否则消息序列不自洽</li>
+      <li>能说出:抽掉的是<b>信息</b>,不是<b>协议合法性</b></li>
+      <li>能解释双重检查防止两种混淆:只查 hidden 会把「历史也丢了」误判为成功;只查 retained 会把「结果泄漏了」误判为成功</li>
+    </ul></div></div>
+    <div class="row"><div class="k">看这里</div><div class="v src"><a href="run_experiment_1_1.py#L160">run_experiment_1_1.py:160</a> 契约的 NO_TOOL_RESULTS 分支 · <a href="test_experiment_1_1.py#L59">test_experiment_1_1.py:59</a> 正反两个断言</div></div>
+  </div>
+</section>
+
+<!-- 5 -->
+<section class="ex" data-ex="5">
+  <div class="ex-head">
+    <input type="checkbox" id="c5" aria-label="标记练习 5 完成">
+    <div class="ex-title">
+      <h3><label for="c5"><span class="num">05</span> 思考内容从哪来,又为什么强制 temperature=1</label> <span class="badge off">离线</span> <span class="dots">●●●</span></h3>
+    </div>
+  </div>
+  <div class="ex-body">
+    <div class="row"><div class="k">目标</div><div class="v"><p>搞清 <code>no_reasoning</code> 这个臂成立的前提条件。</p></div></div>
+    <div class="row"><div class="k">你要做的事</div><div class="v"><p>读 <a href="agent.py#L537">agent.py:537</a> 的 <code>_reasoning_content</code> 和 <a href="agent.py#L25">agent.py:25</a> 的 <code>_reasoning_safe_temperature</code>,回答:</p>
+      <ul>
+        <li>为什么同一个字段要同时检查 <code>.reasoning_content</code> 和 <code>.model_extra</code>?</li>
+        <li>为什么 <code>kimi-k3</code> / <code>gpt-5</code> 必须 <code>temperature=1</code>?</li>
+        <li>如果某个 provider 根本不返回 reasoning,<code>no_reasoning</code> 臂还「成立」吗?</li>
+      </ul>
+    </div></div>
+    <div class="row"><div class="k">验证标准</div><div class="v"><ul>
+      <li>能说出:不同 SDK 把思考内容放在不同位置(直接属性 vs <code>model_extra</code> 字典),所以要做形状兼容</li>
+      <li>能说出:推理模型在 <code>temperature≠1</code> 时行为不同甚至报错,所以这个函数会「纠正」请求</li>
+      <li>第三问最关键:不返回 reasoning 时,契约里的 <code>provider_generated_reasoning</code> 为 False,<b>契约失败</b>——而不是「消融成功」</li>
+    </ul></div></div>
+    <div class="row"><div class="k">为什么第三问重要</div><div class="v"><p>这是整个实验最容易被糊弄的地方。如果 provider 没给思考内容,你「删掉思考内容」当然毫无影响——但这时你证明的不是「思考不重要」,而是「这个模型本来就没有可删的思考」。契约用 <code>provider_generated_reasoning</code> 把这种情况挡在门外。</p></div></div>
+    <div class="row"><div class="k">看这里</div><div class="v src"><a href="run_experiment_1_1.py#L186">run_experiment_1_1.py:186</a> 契约的 NO_REASONING 分支</div></div>
+  </div>
+</section>
+
+<!-- ============================================================ -->
+<h2><span class="tier t2">Tier 2</span> 用离线替身复现契约</h2>
+<p class="lede">这一阶开始动手写代码,但全部离线、零 API 调用、结果确定。核心技巧:<code>agent.client</code> 只是一个普通属性,把它换成 <code>MagicMock</code> 就能完全控制模型的每一轮回答。</p>
+
+<div class="callout info">
+  <h4>注入缝:两行就够</h4>
+  <ul>
+    <li><code>ContextAwareAgent("test-key", ContextMode.FULL, verbose=False)</code> 不需要真实 Key 也能构造(传任何非空字符串即可)。</li>
+    <li><code>agent.client = MagicMock()</code> 然后 <code>agent.client.chat.completions.create = MagicMock(side_effect=[...])</code>。</li>
+    <li>官方范本:<a href="tests/test_malformed_tool_json.py#L8">tests/test_malformed_tool_json.py:8</a> 的 <code>_choice()</code>。照抄它,别自己造对象形状。</li>
+  </ul>
+</div>
+
+<!-- 6 -->
+<section class="ex" data-ex="6">
+  <div class="ex-head">
+    <input type="checkbox" id="c6" aria-label="标记练习 6 完成">
+    <div class="ex-title">
+      <h3><label for="c6"><span class="num">06</span> 搭一个假模型,驱动两轮 ReAct</label> <span class="badge off">离线</span> <span class="dots">●●○</span></h3>
+    </div>
+  </div>
+  <div class="ex-body">
+    <div class="row"><div class="k">目标</div><div class="v"><p>让 <code>execute_task</code> 在完全不联网的情况下,跑完「调工具 → 拿结果 → 给终答」的完整循环。</p></div></div>
+    <div class="row"><div class="k">你要做的事</div><div class="v"><p>把下面这段存成临时脚本(放在 <code>chapter1/context/</code> 下,或先 <code>sys.path</code> 指过去),跑一遍。然后<b>只改一处</b>:把第 2 轮的 <code>content</code> 改成空字符串,看结果怎么变。</p>
+      <pre><code>from types import SimpleNamespace
+from unittest.mock import MagicMock
+from agent import ContextAwareAgent, ContextMode
+
+def _choice(*, content=None, tool_calls=None, reasoning=None):
+    msg = SimpleNamespace(
+        content=content, tool_calls=tool_calls, reasoning_content=reasoning,
+        model_dump=lambda: {
+            "role": "assistant", "content": content,
+            "reasoning_content": reasoning,
+            "tool_calls": [
+                {"id": tc.id, "type": "function",
+                 "function": {"name": tc.function.name,
+                              "arguments": tc.function.arguments}}
+                for tc in (tool_calls or [])
+            ],
+        },
+    )
+    return SimpleNamespace(message=msg)
+
+def _response(choice, resp_id):
+    # 顶层的 model_dump 让 api_turns 里带上 response.id —— 契约要靠它
+    return SimpleNamespace(
+        id=resp_id, choices=[choice],
+        model_dump=lambda: {"id": resp_id,
+                            "choices": [choice.message.model_dump()]},
+    )
+
+call = SimpleNamespace(id="call-1",
+    function=SimpleNamespace(name="calculate",
+                             arguments='{"expression": "2 + 2"}'))
+turn1 = _response(_choice(tool_calls=[call], reasoning="I should add."), "resp-1")
+turn2 = _response(_choice(content="FINAL ANSWER: 4", reasoning="Done."), "resp-2")
+
+agent = ContextAwareAgent("test-key", ContextMode.FULL, verbose=False)
+agent.client = MagicMock()
+agent.client.chat.completions.create = MagicMock(side_effect=[turn1, turn2])
+
+result = agent.execute_task("compute 2+2", max_iterations=5)
+
+print(result["completed"], result["final_answer"])
+print(agent.client.chat.completions.create.call_count)
+for t in agent.trajectory.api_turns:
+    print(t["iteration"], [m["role"] for m in t["request"]["messages"]])</code></pre>
+    </div></div>
+    <div class="row"><div class="k">验证标准</div><div class="v"><ul>
+      <li>输出 <code>True 4</code>、调用次数 <code>2</code></li>
+      <li>两轮的 role 序列分别是 <code>['system','user']</code> 和 <code>['system','user','assistant','tool']</code></li>
+      <li>把第 2 轮 content 改空后:<code>completed</code> 变 <code>False</code>——空终止响应<b>不算</b>完成</li>
+    </ul></div></div>
+    <div class="row"><div class="k">必须想通的一点</div><div class="v"><p>假响应为什么非要带 <code>id</code>?因为契约的 <code>has_provider_response_ids</code> 只认真实 provider 响应 ID。没有它,即使请求形状全对,契约也判失败。这不是多余的形式主义——它是 mock 与真实证据的分界线,<code>direct_real_api_evidence</code> 就靠这一条。</p></div></div>
+  </div>
+</section>
+
+<!-- 7 -->
+<section class="ex" data-ex="7">
+  <div class="ex-head">
+    <input type="checkbox" id="c7" aria-label="标记练习 7 完成">
+    <div class="ex-title">
+      <h3><label for="c7"><span class="num">07</span> 让五种契约全部离线通过</label> <span class="badge off">离线</span> <span class="dots">●●●</span></h3>
+    </div>
+  </div>
+  <div class="ex-body">
+    <div class="row"><div class="k">目标</div><div class="v"><p>亲手造出「每种模式该长什么样」的请求,这会强制你把上图背下来。</p></div></div>
+    <div class="row"><div class="k">你要做的事</div><div class="v"><p>造五组 <code>turns</code>,喂给 <code>evaluate_context_contract</code>。下面这段已验证可跑:</p>
+      <pre><code>from run_experiment_1_1 import evaluate_context_contract
+
+def turn(messages, *, tools=True, reasoning="reason", resp_id="resp-1"):
+    req = {"messages": messages}
+    if tools:
+        req.update({"tools": [{"type": "function"}], "tool_choice": "auto"})
+    return {"request": req,
+            "response": {"id": resp_id,
+                         "choices": [{"message": {"reasoning_content": reasoning}}]}}
+
+SYSTEM  = {"role": "system", "content": "system"}
+USER    = {"role": "user",   "content": "task"}
+ASSIST  = {"role": "assistant", "reasoning_content": "reason",
+           "tool_calls": [{"id": "call"}]}
+TOOL    = {"role": "tool", "content": '{"result": 4}'}
+HIDDEN  = {"role": "tool", "content": "[Tool result hidden due to context mode]"}
+STRIPPED = {k: v for k, v in ASSIST.items() if k != "reasoning_content"}
+
+cases = {
+    "full":            [turn([SYSTEM, USER]), turn([SYSTEM, USER, ASSIST, TOOL])],
+    "no_history":      [turn([SYSTEM, USER]), turn([SYSTEM, USER])],
+    "no_reasoning":    [turn([SYSTEM, USER]), turn([SYSTEM, USER, STRIPPED, TOOL])],
+    "no_tool_results": [turn([SYSTEM, USER]), turn([SYSTEM, USER, ASSIST, HIDDEN])],
+    "no_tool_calls":   [turn([SYSTEM, USER], tools=False)],
+}
+for mode, turns in cases.items():
+    r = evaluate_context_contract(mode, turns)
+    print(mode, r["passed"], r["required_checks"])</code></pre>
+    </div></div>
+    <div class="row"><div class="k">验证标准</div><div class="v"><ul>
+      <li>五种全部 <code>passed=True</code></li>
+      <li>抄下每种模式的 <code>required_checks</code>,和上面的对照表逐条对上</li>
+      <li>能说出:为什么 <code>no_tool_calls</code> 只需要一轮?</li>
+    </ul></div></div>
+    <div class="row"><div class="k">看这里</div><div class="v src"><a href="run_experiment_1_1.py#L117">run_experiment_1_1.py:117</a> <code>evaluate_context_contract</code> · <a href="test_experiment_1_1.py#L9">test_experiment_1_1.py:9</a> 同款 <code>turn()</code> 辅助</div></div>
+    <details class="hint"><summary>为什么 no_tool_calls 只需一轮</summary><div class="hint-body">
+      没有工具定义,模型没法发起工具调用,所以第 1 轮就只能给出文本答复然后终止。这也是第三阶第 11 题只花 1 次请求的原因。
+    </div></details>
+  </div>
+</section>
+
+<!-- 8 -->
+<section class="ex" data-ex="8">
+  <div class="ex-head">
+    <input type="checkbox" id="c8" aria-label="标记练习 8 完成">
+    <div class="ex-title">
+      <h3><label for="c8"><span class="num">08</span> 故意让契约失败</label> <span class="badge off">离线</span> <span class="dots">●●●</span></h3>
+    </div>
+  </div>
+  <div class="ex-body">
+    <div class="row"><div class="k">目标</div><div class="v"><p>确认契约不是「走个过场」——它有鉴别力。</p></div></div>
+    <div class="row"><div class="k">你要做的事</div><div class="v"><p>给 <code>no_history</code> 发一个「滑一步窗口」:第 2 轮仍然带着 <code>assistant</code> + <code>tool</code>。</p>
+      <pre><code>sliding = evaluate_context_contract(
+    "no_history",
+    [turn([SYSTEM, USER]), turn([SYSTEM, USER, ASSIST, TOOL])],
+)
+print(sliding["passed"])          # 必须是 False
+print(sliding["request_roles"])   # 看它抓住了什么</code></pre>
+    </div></div>
+    <div class="row"><div class="k">验证标准</div><div class="v"><ul>
+      <li><code>passed</code> 为 <code>False</code></li>
+      <li>能指出是 <code>only_static_prefix_and_user_every_turn</code> 这一项挂了</li>
+      <li>能复述 <code>evaluate_context_contract</code> 文档串的第一句:<b>验证实际发出的请求,而不是你请求的 CLI 模式</b></li>
+    </ul></div></div>
+    <div class="row"><div class="k">这一题真正在教什么</div><div class="v"><p><code>_prepare_messages_for_api</code> 的文档串里明确写了:它<b>不</b>用「滑一步窗口」,因为那仍然算历史,会实质性地削弱正文描述的消融。你刚刚亲手证明了这一点——滑窗确实会被契约拒绝。<b>「实验做得更宽松」和「实验做得和正文一致」是两件事。</b></p></div></div>
+  </div>
+</section>
+
+<!-- 9 -->
+<section class="ex" data-ex="9">
+  <div class="ex-head">
+    <input type="checkbox" id="c9" aria-label="标记练习 9 完成">
+    <div class="ex-title">
+      <h3><label for="c9"><span class="num">09</span> 执行成功 ≠ 任务正确 ≠ 正文断言成立</label> <span class="badge off">离线</span> <span class="dots">●●●</span></h3>
+    </div>
+  </div>
+  <div class="ex-body">
+    <div class="row"><div class="k">目标</div><div class="v"><p>吃透三分法。这是整个实验方法论上最有价值的部分,也是它区别于普通 demo 的地方。</p></div></div>
+    <div class="row"><div class="k">你要做的事</div><div class="v"><p>造一个「正常终止但答错」的臂:</p>
+      <pre><code>from agent import AgentTrajectory, ContextMode
+from run_experiment_1_1 import summarize_arm, canonical_answer_correct
+
+def arm(final_answer, mode=ContextMode.NO_TOOL_CALLS, iterations=1):
+    done = final_answer is not None
+    return {"trajectory": AgentTrajectory(context_mode=mode),
+            "final_answer": final_answer, "completed": done,
+            "success": done, "iterations": iterations,
+            "provider": "test", "model": "test-model"}
+
+refusal = "I cannot compute the exchange rates without tools."
+a = summarize_arm(ContextMode.NO_TOOL_CALLS, arm(refusal), elapsed=0.1)
+print(a["completed"], a["success"], a["task_success"], a["behavior"])
+# True True False {...}
+
+good = "Annual total: $9,602,895.73; quarterly average: $2,400,723.93"
+b = summarize_arm(ContextMode.NO_TOOL_RESULTS,
+                  arm(good, mode=ContextMode.NO_TOOL_RESULTS), elapsed=0.1)
+print(b["task_success"])   # True —— 即使这个臂被消融过,答对了就是答对了</code></pre>
+    </div></div>
+    <div class="row"><div class="k">验证标准</div><div class="v"><ul>
+      <li>第一个臂:<code>completed=True</code>、<code>success=True</code>、<code>task_success=False</code></li>
+      <li>第二个臂:<code>task_success=True</code>——消融臂不该被「强制判错」</li>
+      <li>能分别说出三个字段回答的问题</li>
+    </ul></div></div>
+    <div class="row"><div class="k">三个字段各回答什么</div><div class="v"><ul>
+      <li><code>completed</code>:API / 循环有没有返回终止响应?(<b>执行层</b>)</li>
+      <li><code>task_success</code>:按规范数值标准,答案对不对?(<b>正确性层</b>)</li>
+      <li><code>manuscript_behavior_claims</code>:正文描述的行为模式有没有复现?(<b>科学结论层</b>)</li>
+    </ul><p style="margin-top:6px">三层可以互相矛盾,而且这种矛盾正是实验的产出。</p></div></div>
+    <div class="row"><div class="k">看这里</div><div class="v src"><a href="run_experiment_1_1.py#L241">run_experiment_1_1.py:241</a> 数值判据(<code>EXPECTED_NUMBERS</code> 在 <a href="run_experiment_1_1.py#L42">:42</a>)· <a href="run_experiment_1_1.py#L252">:252</a> <code>summarize_arm</code> · <a href="test_experiment_1_1.py#L97">test_experiment_1_1.py:97</a></div></div>
+  </div>
+</section>
+
+<!-- 10 -->
+<section class="ex" data-ex="10">
+  <div class="ex-head">
+    <input type="checkbox" id="c10" aria-label="标记练习 10 完成">
+    <div class="ex-title">
+      <h3><label for="c10"><span class="num">10</span> <code>token_usage</code> 为什么要写两套字段名</label> <span class="badge off">离线</span> <span class="dots">●●○</span></h3>
+    </div>
+  </div>
+  <div class="ex-body">
+    <div class="row"><div class="k">目标</div><div class="v"><p>看懂「一本书要支持多 provider」这个需求,是怎么渗进最底层的数据处理里的。</p></div></div>
+    <div class="row"><div class="k">你要做的事</div><div class="v"><p>读 <a href="run_experiment_1_1.py#L292">run_experiment_1_1.py:292</a>,然后用两种 usage 形状各造一个臂:</p>
+      <pre><code>from run_experiment_1_1 import token_usage
+
+openai_style = {"api_turns": [{"response": {"usage": {
+    "prompt_tokens": 10, "completion_tokens": 5,
+    "prompt_tokens_details": {"cached_tokens": 2},
+    "completion_tokens_details": {"reasoning_tokens": 1},
+}}}]}
+
+responses_style = {"api_turns": [{"response": {"usage": {
+    "input_tokens": 10, "output_tokens": 5,
+    "input_tokens_details": {"cached_tokens": 2},
+    "output_tokens_details": {"reasoning_tokens": 1},
+}}}]}
+
+print(token_usage([openai_style]))
+print(token_usage([responses_style]))   # 完全相同
+print(token_usage([openai_style, responses_style]))  # 相加</code></pre>
+    </div></div>
+    <div class="row"><div class="k">验证标准</div><div class="v"><ul>
+      <li>两种形状汇总出<b>完全相同</b>的字典</li>
+      <li>两个臂合并后:<code>prompt=20, completion=10, total=30, cached=4, reasoning=2</code></li>
+      <li>能说出哪几组键名是互斥出现的</li>
+    </ul></div></div>
+    <div class="row"><div class="k">想通这一层</div><div class="v"><p>同一个「token 用量」概念,在 OpenAI Chat Completions 里叫 <code>prompt/completion_tokens</code>,在新版 Responses 风格里叫 <code>input/output_tokens</code>;缓存和推理明细也各有一套前缀。这段代码用 <code>a or b or 0</code> 把它们压平——<b>证据格式的兼容性成本,最终落在最不起眼的聚合函数上</b>。</p></div></div>
+  </div>
+</section>
+
+<!-- ============================================================ -->
+<h2><span class="tier t3">Tier 3</span> 单臂真实观测 + 收尾</h2>
+<p class="lede">只在最后一阶花真实额度。两道题合计 1 次请求(第 12 题纯读文件)。</p>
+
+<!-- 11 -->
+<section class="ex" data-ex="11">
+  <div class="ex-head">
+    <input type="checkbox" id="c11" aria-label="标记练习 11 完成">
+    <div class="ex-title">
+      <h3><label for="c11"><span class="num">11</span> 最便宜的真实对照:只跑 <code>no_tool_calls</code></label> <span class="badge live">1 次请求</span> <span class="dots">●●○</span></h3>
+    </div>
+  </div>
+  <div class="ex-body">
+    <div class="row"><div class="k">目标</div><div class="v"><p>把前一阶的 mock 认知,和一次真实 provider 响应对上。</p></div></div>
+    <div class="row"><div class="k">先预测</div><div class="v"><p><b>跑之前</b>写下你的预测:</p>
+      <ul>
+        <li><code>api_turns</code> 会有几轮?</li>
+        <li>第 1 轮的 <code>request</code> 里有没有 <code>tools</code> 键?</li>
+        <li>模型会直接编一个汇率吗?还是会拒绝?</li>
+        <li><code>tool_calls</code> 是空列表还是有内容?</li>
+      </ul>
+    </div></div>
+    <div class="row"><div class="k">跑这一条</div><div class="v"><p>在 <code>chapter1/context/</code> 下:</p>
+      <pre><code>python main.py --mode single --context-mode no_tool_calls \
+  --provider kimi --output task_result_no_tool_calls.json</code></pre>
+      <p>它会提示你选样例,选 <b>3</b>(Complex Financial Analysis)。</p>
+      <p>然后看 <code>task_result_no_tool_calls.json</code>。</p>
+    </div></div>
+    <div class="row"><div class="k">验证标准</div><div class="v"><ul>
+      <li><code>iterations == 1</code>(只有 1 轮)</li>
+      <li><code>tool_calls == []</code>(0 次工具动作)</li>
+      <li><code>api_turns[0].request</code> <b>没有</b> <code>tools</code> 键</li>
+      <li>终答里能看到模型明确表示「无法在不用工具的情况下给出准确汇率」</li>
+    </ul></div></div>
+    <div class="row"><div class="k">如果 429</div><div class="v"><p>等 60 秒再试一次。<b>不要</b>改成连跑多个模式——那正是你上次把 <code>latest.json</code> 跑坏的原因。这一题只需要 1 次请求,是你这个 3 RPM 账号能轻松承受的。</p></div></div>
+    <div class="row"><div class="k">想深一层</div><div class="v"><p>注意:这个臂的 <code>task_success</code> 会是 <code>False</code>,但模型的行为本身是<b>正确</b>的——它在信息不足时拒绝编造。这正是第 9 题三分法的现实版:<b>任务失败 ≠ 模型行为不当</b>。</p></div></div>
+  </div>
+</section>
+
+<!-- 12 -->
+<section class="ex" data-ex="12">
+  <div class="ex-head">
+    <input type="checkbox" id="c12" aria-label="标记练习 12 完成">
+    <div class="ex-title">
+      <h3><label for="c12"><span class="num">12</span> 自建证据校验器:独立重算 <code>analyze()</code></label> <span class="badge off">只读文件</span> <span class="dots">●●●</span></h3>
+    </div>
+  </div>
+  <div class="ex-body">
+    <div class="row"><div class="k">目标</div><div class="v"><p>用「重写一遍判据」的方式,彻底掌握证据模型。这是整套练习的收尾,也是最接近真实评审工作的一题。</p></div></div>
+    <div class="row"><div class="k">你要做的事</div><div class="v"><p>写一个脚本,读任意 <code>validation/*/evidence.json</code>,<b>不看</b>里面存的 <code>analysis</code>,自己从 <code>arms</code> 重新算出:</p>
+      <ul>
+        <li><code>exact_five_arms_present</code>(五个模式是否齐全)</li>
+        <li><code>all_context_contracts_passed</code>(每臂 <code>context_contract.passed</code> 是否全真)</li>
+        <li><code>direct_real_api_evidence</code>(没有走 OpenRouter、且每轮都有 response id)</li>
+        <li>五个 <code>manuscript_behavior_claims</code></li>
+      </ul>
+      <p>然后和文件里存的 <code>analysis</code> 逐项对比。三个文件都要跑:</p>
+      <pre><code>validation/real_20261013T063106Z/evidence.json   # 你那次失败的
+validation/real_20260729T153329Z/evidence.json   # 已验收的
+validation/latest.json                            # 当前指针(指向失败的)</code></pre>
+    </div></div>
+    <div class="row"><div class="k">验证标准</div><div class="v"><ul>
+      <li>两份文件的三项 gate 你都算对</li>
+      <li>五个 claims 逐条对上(注意:存储的字典还多一个 <code>all_manuscript_behavior_claims_observed</code> 汇总键,别拿整字典直接比)</li>
+      <li>能解释两份文件的差异</li>
+    </ul></div></div>
+    <div class="row"><div class="k">这一题的核心发现</div><div class="v">
+      <p>在你那次失败运行里,<code>without_reasoning_degraded</code> 居然是 <code>True</code>。为什么?</p>
+      <p>因为 <code>no_reasoning</code> 臂被 429 打挂了,<code>final_answer</code> 是 <code>None</code>,于是「答案不正确」→ 被算成「思考被移除后性能退化」。<b>一个根本没跑起来的臂,伪装成了「正文断言被复现」。</b></p>
+      <p>同理 <code>without_tool_results_repeated_action</code> 和 <code>without_history_repeated_action</code> 变成 <code>False</code>——不是没重复,而是压根没跑。</p>
+      <p>这就是为什么 <code>analyze()</code> 必须先过 <code>contracts</code> + <code>direct_real_api</code> 两道门,才允许谈 behavior claims:<b>失败运行会生产看起来很正常的行为指标</b>。也解释了为什么 <code>experiment_execution_accepted</code> 要求「five arms ∧ contracts ∧ direct api ∧ baseline correct」四项同时成立。</p>
+    </div></div>
+    <div class="row"><div class="k">看这里</div><div class="v src"><a href="run_experiment_1_1.py#L318">run_experiment_1_1.py:318</a> <code>analyze()</code> · <a href="run_experiment_1_1.py#L429">:429</a> <code>credential_value_recorded</code> · <a href="run_experiment_1_1.py#L453">:453</a> <code>latest.json</code> 的写入</div></div>
+    <details class="hint"><summary>已核验的参考实现</summary><div class="hint-body">
+      <pre><code>import json
+from pathlib import Path
+
+EXPECTED = ("9602895.73", "2400723.93")
+MODES = {"full","no_history","no_reasoning","no_tool_calls","no_tool_results"}
+
+def correct(answer):
+    norm = (answer or "").replace(",", "").replace("$", "").replace(" ", "")
+    return bool(answer) and all(n in norm for n in EXPECTED)
+
+def verdict(ev):
+    arms = ev["arms"]
+    by_mode = {a["mode"]: a for a in arms}
+    exact_five = set(by_mode) == MODES
+    contracts = exact_five and all(a["context_contract"]["passed"] for a in arms)
+    direct = all(
+        not a["using_openrouter"] and a["api_turns"]
+        and all(t.get("response", {}).get("id") for t in a["api_turns"])
+        for a in arms
+    )
+    behavior = {
+        "full_baseline_correct":
+            correct(by_mode.get("full", {}).get("final_answer")),
+        "without_tool_definitions_no_tool_action":
+            by_mode.get("no_tool_calls", {}).get("behavior", {})
+                .get("tool_action_count") == 0,
+        "without_tool_results_repeated_action":
+            by_mode.get("no_tool_results", {}).get("behavior", {})
+                .get("has_repeated_tool_action", False),
+        "without_history_repeated_action":
+            by_mode.get("no_history", {}).get("behavior", {})
+                .get("has_repeated_tool_action", False),
+        "without_reasoning_degraded":
+            not by_mode.get("no_reasoning", {}).get("behavior", {})
+                .get("canonical_answer_correct", False),
+    }
+    return exact_five, contracts, direct, behavior
+
+ev = json.loads(Path("validation/real_20260729T153329Z/evidence.json")
+                .read_text(encoding="utf-8"))
+mine = verdict(ev)
+stored = ev["analysis"]
+for key, value in zip(
+    ("exact_five_arms_present","all_context_contracts_passed",
+     "direct_real_api_evidence"), mine[:3]):
+    print(f"{key:<28} mine={value}  stored={stored[key]}")
+for key, value in mine[3].items():
+    print(f"{key:<45} mine={value}  stored={stored['manuscript_behavior_claims'][key]}")</code></pre>
+    </div></details>
+  </div>
+</section>
+
+<!-- ============================================================ -->
+<h2>八个「为什么」</h2>
+<p class="lede">这些是读这个实验时最容易滑过去、但一旦想通就再也不会忘的点。先自己想,再展开。</p>
+
+<details class="qa"><summary>为什么 <code>no_history</code> 不用「滑一步窗口」这颗更温和的子弹?</summary>
+<div class="a"><p>因为滑窗<b>仍然是历史</b>。只要模型还能看到上一轮的工具结果,它就不会「每轮重新开始」,而正文描述的消融恰恰是「模型丢失全部跨轮记忆」。用滑窗会让实验看起来更漂亮(不那么容易崩),但它测的已经不是正文说的那个东西了。<code>_prepare_messages_for_api</code> 的文档串把这条写死在代码里。</p></div></details>
+
+<details class="qa"><summary>为什么 <code>no_tool_results</code> 不删掉整条 tool 消息?</summary>
+<div class="a"><p>因为 assistant 消息里已经声明了 <code>tool_calls</code>,后面的 tool 消息是配套的回复。删掉它,消息序列就不自洽了——那是<b>协议错误</b>,不是<b>信息缺失</b>。实验要测的是「看不到结果会怎样」,不是「发一个非法请求会怎样」。所以保留消息骨架、只替换 <code>content</code>。</p></div></details>
+
+<details class="qa"><summary>为什么契约检查的是「actual request」而不是 CLI 模式?</summary>
+<div class="a"><p>因为模式只是个字符串,它不保证代码真的照做了。你完全可以传 <code>--context-mode no_history</code> 而代码根本没实现消融——那样跑出来的数据会被贴上「no_history」的标签,却是假的。<code>evaluate_context_contract</code> 的文档串第一句就是:验证实际发出去的请求。这也解释了你那次失败运行为什么 <code>contracts=False</code>:四个臂压根没发出去请求。</p></div></details>
+
+<details class="qa"><summary>为什么 <code>hit_iteration_ceiling</code> 在 <code>main()</code> 里被重算一遍?</summary>
+<div class="a"><p><code>summarize_arm</code> 是个纯函数,也被单元测试直接调用,所以它只能用一个默认上限(代码里写的是 <code>&gt;= 5</code>)。但真实运行时 <code>--max-iterations</code> 可能是别的值。<code>run_experiment_1_1.py:414-416</code> 就用实际配置的上限把它重算。这是「纯函数保持可测 / 运行器注入真实配置」的典型分工。</p></div></details>
+
+<details class="qa"><summary>为什么 <code>credential_value_recorded</code> 永远是 <code>False</code>?</summary>
+<div class="a"><p>因为它不是「有没有记」的状态位,而是一条<b>声明</b>:这份证据里不含凭据值。真正记录的是 <code>credential_source_env</code>(用的是哪个环境变量名)。这样任何人拿到 evidence.json 都能复现「该设哪个变量」,但拿不到 key 本身。凭据永不入仓是这个仓库的硬纪律。</p></div></details>
+
+<details class="qa"><summary>为什么 <code>latest.json</code> 是 <code>copyfile</code>,而不是软链接或一个「指向某目录」的小 JSON?</summary>
+<div class="a"><p>因为证据必须<b>自包含、可单独评审</b>。一个指针对象要求评审者再去跳转;一份完整拷贝则可以单独打开、单独算 SHA-256、单独归档。代价是磁盘上多一份副本——在证据完整性面前,这个代价很小。</p></div></details>
+
+<details class="qa"><summary>为什么 <code>task_success</code> 在 agent 层是 <code>None</code>,而不是 <code>False</code>?</summary>
+<div class="a"><p>因为通用 agent 无法判断任意自然语言任务的对错。把「不知道」写成 <code>False</code> 等于凭空制造失败。所以 agent 层留 <code>None</code>,只有实验层(拿着 <code>EXPECTED_NUMBERS</code> 这种规范判据)才敢下结论。<b>「未评估」和「评估为失败」必须是两个状态。</b></p></div></details>
+
+<details class="qa"><summary>为什么假响应必须带 <code>response.id</code>?</summary>
+<div class="a"><p>因为 <code>has_provider_response_ids</code> 是每个模式都要求的必查项,而 <code>direct_real_api_evidence</code> 要求每一轮都有真 ID。这是 mock 与真实证据之间唯一无法伪造的界线:你可以伪造消息形状,但伪造不出 provider 的响应 ID。所以离线练习能做到「契约形状全对」,却永远得不到 <code>direct_real_api_evidence=True</code>——这是刻意的。</p></div></details>
+
+<h2>判分表</h2>
+<table class="tbl">
+  <thead><tr><th>题</th><th>能力</th><th>通过标准</th><th style="width:60px">自评</th></tr></thead>
+  <tbody>
+    <tr><td>01</td><td>轨迹阅读</td><td>画出两轮 role 序列,指出 reasoning_content 的位置</td><td>□</td></tr>
+    <tr><td>02</td><td>路径定位</td><td>四处消融点预测全中</td><td>□</td></tr>
+    <tr><td>03</td><td>代码阅读</td><td>指出 <code>_build_context</code> 不在请求路径上</td><td>□</td></tr>
+    <tr><td>04</td><td>协议 vs 信息</td><td>解释为何保留 tool 消息骨架 + 契约为何双重检查</td><td>□</td></tr>
+    <tr><td>05</td><td>实验前提</td><td>说明 provider 不返回 reasoning 时契约应失败</td><td>□</td></tr>
+    <tr><td>06</td><td>注入替身</td><td>两轮循环跑通 + 空终止不算完成</td><td>□</td></tr>
+    <tr><td>07</td><td>契约构造</td><td>五种模式全部 passed</td><td>□</td></tr>
+    <tr><td>08</td><td>契约鉴别力</td><td>滑窗被判 False 并能解释原因</td><td>□</td></tr>
+    <tr><td>09</td><td>三分法</td><td>completed / task_success / claims 各自说清</td><td>□</td></tr>
+    <tr><td>10</td><td>数据兼容</td><td>两种 usage 形状汇总一致</td><td>□</td></tr>
+    <tr><td>11</td><td>真实验证</td><td>1 次请求,预测与 api_turns 对上</td><td>□</td></tr>
+    <tr><td>12</td><td>证据评审</td><td>独立重算两份 evidence,并解释差异</td><td>□</td></tr>
+  </tbody>
+</table>
+
+<footer>
+  <p><b>进度</b>保存在浏览器 localStorage(键名 <code>ctx-exercises-v1</code>),关掉页面再打开会恢复。点右上角「重置」可清空。</p>
+  <p>本文件是学习辅助材料,不属于实验的验收证据;它不会被发布到项目网站(<code>scripts/clean_site_files.py</code> 的白名单里没有 <code>.html</code>)。</p>
+  <p>配套源码:<a href="agent.py">agent.py</a> · <a href="run_experiment_1_1.py">run_experiment_1_1.py</a> · <a href="main.py">main.py</a> · <a href="tests/test_malformed_tool_json.py">tests/test_malformed_tool_json.py</a> · <a href="test_experiment_1_1.py">test_experiment_1_1.py</a></p>
+</footer>
+
+</div>
+
+<script>
+(function () {
+  "use strict";
+  var KEY = "ctx-exercises-v1";
+  var boxes = Array.prototype.slice.call(
+    document.querySelectorAll('.ex input[type="checkbox"]')
+  );
+  var total = boxes.length;
+
+  function load() {
+    try { return JSON.parse(localStorage.getItem(KEY) || "{}"); }
+    catch (e) { return {}; }
+  }
+  function save(state) {
+    try { localStorage.setItem(KEY, JSON.stringify(state)); } catch (e) {}
+  }
+  function refresh() {
+    var done = boxes.filter(function (b) { return b.checked; }).length;
+    document.getElementById("bar").style.width =
+      (total ? (done / total) * 100 : 0) + "%";
+    document.getElementById("count").textContent = done + " / " + total;
+    boxes.forEach(function (b) {
+      var card = b.closest(".ex");
+      if (card) card.classList.toggle("done", b.checked);
+    });
+  }
+
+  var state = load();
+  boxes.forEach(function (b) {
+    b.checked = !!state[b.id];
+    b.addEventListener("change", function () {
+      state[b.id] = b.checked;
+      save(state);
+      refresh();
+    });
+  });
+  refresh();
+
+  document.getElementById("reset").addEventListener("click", function () {
+    if (!window.confirm("清空所有练习进度?")) return;
+    boxes.forEach(function (b) { b.checked = false; });
+    state = {};
+    save(state);
+    refresh();
+  });
+
+  // 复制按钮
+  document.querySelectorAll("pre").forEach(function (pre) {
+    var btn = document.createElement("button");
+    btn.className = "copy";
+    btn.type = "button";
+    btn.textContent = "复制";
+    btn.addEventListener("click", function () {
+      var text = pre.querySelector("code");
+      text = text ? text.textContent : pre.textContent;
+      var done = function () {
+        btn.textContent = "已复制";
+        setTimeout(function () { btn.textContent = "复制"; }, 1200);
+      };
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(text).then(done, function () {});
+      } else {
+        var ta = document.createElement("textarea");
+        ta.value = text;
+        document.body.appendChild(ta);
+        ta.select();
+        try { document.execCommand("copy"); done(); } catch (e) {}
+        document.body.removeChild(ta);
+      }
+    });
+    pre.appendChild(btn);
+  });
+
+  // 点击标题也能勾选
+  document.querySelectorAll(".ex-title h3 label").forEach(function (label) {
+    var id = label.getAttribute("for");
+    var box = document.getElementById(id);
+    if (!box) return;
+    label.addEventListener("click", function (ev) {
+      ev.preventDefault();
+      box.checked = !box.checked;
+      box.dispatchEvent(new Event("change"));
+    });
+  });
+})();
+</script>
+</body>
+</html>

@@ -1,3 +1,5 @@
+import sys
+
 import pytest
 import tempfile
 from pathlib import Path
@@ -28,7 +30,7 @@ def test_rendered_links_extracts_src_and_href_from_all_asset_tags():
     assert "link.json" in links
     assert "image.png" in links
 
-
+@pytest.mark.skipif(sys.platform == "win32", reason="Path resolution differs on Windows")
 def test_linked_json_files_finds_script_and_iframe_linked_jsons():
     with tempfile.TemporaryDirectory() as tmpdir:
         root = Path(tmpdir)

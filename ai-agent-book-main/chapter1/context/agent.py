@@ -554,7 +554,7 @@ Important: When you have gathered all necessary information and computed the fin
     def _build_context(self) -> str:
         """
         Build a human-readable summary of the trajectory (legacy helper, kept
-        for inspection/debugging only).
+        for inspection/debugging only). 
 
         NOTE: The message list sent to the model is assembled by
         ``_prepare_messages_for_api`` -- that is where the NO_HISTORY ablation

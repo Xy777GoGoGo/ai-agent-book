@@ -24,7 +24,8 @@ from typing import Any, Dict, Iterable, List
 
 from agent import ContextAwareAgent, ContextMode
 
-
+from dotenv import load_dotenv
+load_dotenv()
 EXPERIMENT_ID = "1-1"
 MODES = list(ContextMode)
 CANONICAL_TASK = """According to the company's quarterly revenue:
@@ -278,6 +279,7 @@ def summarize_arm(mode: ContextMode, result: Dict[str, Any], elapsed: float) -> 
         "reasoning_steps": trajectory.reasoning_steps,
         "api_turns": trajectory.api_turns,
     }
+
     arm["context_contract"] = evaluate_context_contract(mode.value, trajectory.api_turns)
     arm["behavior"] = {
         "tool_action_count": len(tool_calls),
